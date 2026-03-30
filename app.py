@@ -8,7 +8,7 @@ st.set_page_config(page_title="Dashboard Makroekonomi BBM", layout="wide")
 
 st.title("📊 Analisis Kebijakan Substitusi Impor BBM & Elektrifikasi")
 
-# --- PENGATURAN GLOBAL (Di Sidebar / Melayang) ---
+# --- PENGATURAN GLOBAL (Di Sidebar) ---
 with st.sidebar:
     st.header("⚙️ Parameter Global")
     st.markdown("Atur variabel simulasi di sini:")
@@ -31,13 +31,14 @@ with st.container(border=True):
     st.subheader("a. Substitusi Impor Solar & Dinamika FAME")
     st.markdown("Berdasarkan regresi logaritmik, **konsumsi solar 2026 diprediksi sebesar 39,84 Juta kL**.")
     
-    # Grafik Historis
+    # Grafik Historis (Perbaikan Bug Plotly)
     df_solar_hist = pd.DataFrame({
-        "Tahun": ["2020", "2021", "2022", "2023", "2024", "2025", "2026"],
+        "Tahun": [2020, 2021, 2022, 2023, 2024, 2025, 2026],
         "Konsumsi (Juta kL)": [33.5, 33.4, 36.2, 37.8, 39.2, 39.5, 39.84]
     })
     fig_solar = px.line(df_solar_hist, x="Tahun", y="Konsumsi (Juta kL)", markers=True, title="Historis & Proyeksi Konsumsi Solar Nasional")
-    fig_solar.add_vline(x="2025", line_dash="dash", line_color="red", annotation_text="Proyeksi 2026 ->")
+    # Pastikan x=2025 (tanpa tanda kutip) agar tidak error TypeError
+    fig_solar.add_vline(x=2025, line_dash="dash", line_color="red", annotation_text="Proyeksi 2026 ->")
     fig_solar.update_traces(line_color="#e63946", marker=dict(size=10))
     fig_solar.update_layout(xaxis=dict(tickformat="d", dtick=1))
     st.plotly_chart(fig_solar, use_container_width=True, config={'staticPlot': True})
@@ -64,11 +65,11 @@ with st.container(border=True):
         st.markdown(f"""
         **Alur Simulasi Angka:**
         * **Kebutuhan Solar Fosil:** Proyeksi Konsumsi (39,84 Jt kL) dikurangi porsi campuran Biosolar (FAME). Pada komposisi {target_fame}%, dibutuhkan Fosil sebanyak {vol_fosil_dibutuhkan:.2f} Jt kL.
-        * **Sisa Impor:** Kebutuhan Fosil dikurangi kapasitas kilang lokal (20,1 Jt kL). Defisitnya adalah {vol_impor:.2f} Jt kL.
-        * **Volume Impor Dicegah:** Target impor lama (4,9 Jt kL) dikurangi Sisa Impor yang baru = **{impor_dihemat_solar:.2f} Jt kL**.
-        * **Hemat Subsidi:** {impor_dihemat_solar:.2f} Jt kL $\\times$ Rp 5.150/liter = **Rp {hemat_kotor_solar:.2f} Triliun**.
-        * **Biaya Kompensasi FAME (BPDPKS):** {impor_dihemat_solar:.2f} Jt kL $\\times$ Selisih Harga Rp 3.000/liter = **Rp {beban_fame:.2f} Triliun**.
-        * **Kesimpulan Penghematan Bersih:** Rp {hemat_kotor_solar:.2f} T $-$ Rp {beban_fame:.2f} T = **Rp {hemat_bersih_solar:.2f} Triliun**.
+        * **Sisa Impor:** Kebutuhan Fosil dikurangi kapasitas kilang lokal (20,10 Jt kL). Defisitnya adalah {vol_impor:.2f} Jt kL.
+        * **Volume Impor Dicegah:** Target impor lama (4,90 Jt kL) dikurangi Sisa Impor yang baru = **{impor_dihemat_solar:.2f} Jt kL**.
+        * **Hemat Subsidi:** {impor_dihemat_solar:.2f} Jt kL × Rp 5.150/liter = **Rp {hemat_kotor_solar:.2f} Triliun**.
+        * **Biaya Kompensasi FAME (BPDPKS):** {impor_dihemat_solar:.2f} Jt kL × Selisih Harga Rp 3.000/liter = **Rp {beban_fame:.2f} Triliun**.
+        * **Kesimpulan Penghematan Bersih:** Rp {hemat_kotor_solar:.2f} T − Rp {beban_fame:.2f} T = **Rp {hemat_bersih_solar:.2f} Triliun**.
         """)
 
 # --- Sub-Poin Bensin ---
@@ -117,15 +118,15 @@ with st.expander("💡 Dari Mana Angka Hemat Rakyat & Multiplier (PDB) Berasal?"
     st.markdown(f"""
     **1. Analisis Biaya Kendaraan (Hemat Rakyat):**
     * **Biaya Motor Bensin:** Asumsi efisiensi 50 km/liter dengan harga BBM Rp 10.000/liter = **Rp 200 / km**.
-    * **Biaya Motor Listrik:** Tarif dasar Rp 1.444,7/kWh. Penggunaan riil 1 kWh dapat menempuh 35 km, sehingga biaya operasional = **Rp 41,3 / km**.
+    * **Biaya Motor Listrik:** Tarif dasar Rp 1.444,7/kWh. Konversi uji coba (1 kWh untuk 35 km) menghasilkan biaya operasional = **Rp 41,3 / km**.
     * **Biaya Mobil Bensin:** Asumsi efisiensi 16 km/liter (Rp 10.000/liter) = **Rp 625 / km**.
     * **Biaya Mobil Listrik:** Biaya rata-rata operasional EV = **Rp 150 / km**.
     * **Kesimpulan:** Secara rata-rata, menggunakan kendaraan listrik memangkas **biaya operasional (Hemat) sebesar 5x lipat** dari bensin biasa.
     
     **Simulasi Angka Hemat Rakyat:**
-    * Total Biaya Bensin Awal: {vol_hemat_bensin:.2f} Juta kL $\\times$ Rp 10.000 = **Rp {biaya_bensin_awal:.2f} Triliun**.
-    * Total Biaya Listrik: Rp {biaya_bensin_awal:.2f} Triliun $\\div$ 5 = **Rp {biaya_listrik:.2f} Triliun**.
-    * **Hemat Bersih Masyarakat:** Rp {biaya_bensin_awal:.2f} T $-$ Rp {biaya_listrik:.2f} T = **Rp {hemat_rakyat:.2f} Triliun**.
+    * Total Biaya Bensin Awal: {vol_hemat_bensin:.2f} Juta kL × Rp 10.000 = **Rp {biaya_bensin_awal:.2f} Triliun**.
+    * Total Biaya Listrik: Rp {biaya_bensin_awal:.2f} Triliun ÷ 5 = **Rp {biaya_listrik:.2f} Triliun**.
+    * **Hemat Bersih Masyarakat (E):** Rp {biaya_bensin_awal:.2f} T − Rp {biaya_listrik:.2f} T = **Rp {hemat_rakyat:.2f} Triliun**.
     """)
     st.divider()
     
@@ -142,10 +143,9 @@ with st.expander("💡 Dari Mana Angka Hemat Rakyat & Multiplier (PDB) Berasal?"
         st.markdown(f"""
         **Alur Simulasi PDB:**
         * Uang yang dihemat masyarakat (Rp {hemat_rakyat:.2f} T) tidak diam di tabungan, melainkan dibelanjakan ke sektor riil (makanan, jasa, dll).
-        * Belanja ini memicu siklus ekonomi lanjutan yang diukur dengan rumus: `Nilai Hemat Rakyat dikali Konstanta Multiplier`.
+        * Belanja ini memicu siklus ekonomi lanjutan yang diukur dengan rumus: `Nilai Hemat Rakyat dikalikan Konstanta Multiplier`.
+        * **Perhitungan PDB:** Rp {hemat_rakyat:.2f} Triliun × {k_res:.3f} = **Rp {(hemat_rakyat * k_res):.2f} Triliun**.
         """)
-        st.success(f"""#### 📈 Dorongan PDB Nasional:
-#### Rp {(hemat_rakyat * k_res):.2f} Triliun""")
 
 st.divider()
 
@@ -176,9 +176,10 @@ with st.container(border=True):
         st.markdown(f"""
         **Alur Simulasi Angka:**
         * **Konversi ke Satuan Barel:** Di pasar global, minyak dihitung dalam Barel. Konstanta konversinya adalah 1 kL setara 6,2898 Barel.
-            * Total Solar dan Bensin yang tidak jadi diimpor dikalikan konstanta tersebut, menghasilkan **{tot_barel:.2f} Juta Barel** minyak yang tidak perlu kita beli dari luar negeri.
-        * **Perhitungan Devisa Negara:** {tot_barel:.2f} Juta Barel dikalikan dengan Harga Minyak (USD {harga_minyak}/barel) dan Kurs (Rp {kurs_rp}/USD). Hasilnya adalah nilai Rupiah yang berhasil ditahan di dalam negeri (**Rp {hemat_rp_devisa:.2f} Triliun**).
-        * **Rasio terhadap Defisit:** Uang devisa yang diselamatkan ini dibandingkan dengan proyeksi defisit APBN pemerintah, membuktikan bahwa kebijakan ini bisa menambal celah utang negara secara signifikan.
+            * **Total Barel Dicegah:** (Impor Solar {impor_dihemat_solar:.2f} Jt kL + Impor Bensin {vol_hemat_bensin:.2f} Jt kL) × 6,2898 = **{tot_barel:.2f} Juta Barel**.
+        * **Perhitungan Devisa Negara:** {tot_barel:.2f} Juta Barel × Harga Minyak (USD {harga_minyak}/barel) × Kurs (Rp {kurs_rp}/USD) = **Rp {hemat_rp_devisa:.2f} Triliun**.
+        * **Rasio terhadap Defisit:** Rp {hemat_rp_devisa:.2f} T ÷ Target Defisit APBN (Rp 689,1 T) = **{persen_defisit_tot:.2f}%**.
+        * **Rasio terhadap PDB Nominal:** Rp {hemat_rp_devisa:.2f} T ÷ PDB 2025 (Rp 23.821,1 T) = **{persen_pdb_tot:.2f}%**.
         """)
 
 st.divider()
@@ -199,7 +200,7 @@ with st.container(border=True):
         ))
         st.plotly_chart(fig_gauge, use_container_width=True, config={'staticPlot': True})
     with col_l2:
-        st.info("💡 **Konversi Energi:**\n$1 \\text{{ Liter BBM}} = 1,2 \\text{{ kWh}}$")
+        st.info("💡 **Konversi Energi:**\n1 Liter BBM setara dengan 1,2 kWh")
         if kebutuhan_twh <= surplus_twh:
             st.success(f"**Aman!** Beban {kebutuhan_twh:.2f} TWh di bawah surplus PLN ({surplus_twh} TWh).")
         else:
@@ -208,9 +209,10 @@ with st.container(border=True):
     with st.expander("💡 Dari Mana Angka Skenario Listrik Berasal?", expanded=True):
         st.markdown(f"""
         **Alur Simulasi Angka:**
-        * **Kebutuhan Listrik Tambahan:** Berasal dari total bensin yang dihemat ({vol_hemat_bensin:.2f} Juta kL atau Miliar Liter) dikalikan dengan faktor konversi 1,2 kWh per liter. Hasilnya adalah beban tambahan **{kebutuhan_twh:.2f} TWh** per tahun.
+        * **Kebutuhan Listrik Tambahan:** Berasal dari total bensin yang dihemat ({vol_hemat_bensin:.2f} Juta kL atau Miliar Liter) dikalikan dengan faktor konversi **1,2 kWh per liter**. 
+        * **Perhitungan Beban:** {vol_hemat_bensin:.2f} Juta kL × 1,2 = **{kebutuhan_twh:.2f} TWh** per tahun.
         * **Surplus Listrik Nasional (Kapasitas Menganggur):** Berdasarkan data PLN, kapasitas produksi listrik nasional adalah 354 TWh, sementara yang terpakai hanya 317,69 TWh. 
-        * **Kesimpulan:** Selisihnya menciptakan cadangan tenaga sebesar **36,31 TWh**, yang jauh lebih besar dari beban baru kendaraan listrik. Tidak perlu membangun pembangkit listrik baru secara mendadak.
+        * **Kesimpulan:** Selisihnya menciptakan cadangan tenaga sebesar 354 − 317,69 = **36,31 TWh**, yang jauh lebih besar dari beban baru kendaraan listrik. Tidak perlu membangun pembangkit listrik baru secara mendadak.
         """)
 
 st.divider()
@@ -224,7 +226,6 @@ col_i1, col_i2, col_i3 = st.columns(3)
 with col_i1:
     with st.container(border=True):
         st.subheader("Transisi Motor & Biaya Subsidi")
-        # Parameter Baru sesuai instruksi
         porsi_konversi = st.slider("Porsi Konversi Bengkel (%)", 0, 100, 70, step=5)
         porsi_baru = 100 - porsi_konversi
         
@@ -252,7 +253,6 @@ with col_i2:
         # Parameter Bengkel
         lama_proyek = st.slider("Lama Pengerjaan Proyek (Tahun)", 1, 10, 4)
         
-        # Asumsi 1 line: 730 hingga 3650 motor per tahun
         line_bengkel_min = (vol_konversi * 1_000_000) / (3650 * lama_proyek)
         line_bengkel_max = (vol_konversi * 1_000_000) / (730 * lama_proyek)
         
@@ -298,14 +298,19 @@ with col_i3:
 with st.expander("💡 Dari Mana Angka Infrastruktur & Subsidi Berasal?", expanded=True):
     st.markdown(f"""
     **Alur Simulasi Angka:**
-    * **Jalur Transisi Motor:** Total target populasi motor listrik yang dituju ({total_motor_ev:.2f} Juta unit) dipecah menjadi dua jalur masuk. Ada yang mengubah mesinnya di bengkel (Konversi {porsi_konversi}%), dan ada yang membeli unit keluaran pabrik (Baru {porsi_baru}%).
-    * **Total Biaya Subsidi Pemerintah:** - Anggaran Konversi: {vol_konversi:.2f} Juta unit $\\times$ Rp {subsidi_konv} Juta = **Rp {biaya_subsidi_konv:.2f} Triliun**.
-      - Anggaran Unit Baru: {vol_baru:.2f} Juta unit $\\times$ Rp {subsidi_baru} Juta = **Rp {biaya_subsidi_baru:.2f} Triliun**.
-      - Total keduanya digabung menghasilkan **Rp {total_biaya_subsidi:.2f} Triliun**.
-    * **Kebutuhan Line Bengkel:** - Satu jalur pengerjaan (*line*) di bengkel diasumsikan mampu mengkonversi 2 hingga 10 motor per hari, atau setara dengan penyelesaian 730 hingga 3.650 motor per tahun.
-      - Agar seluruh {vol_konversi:.2f} Juta motor konversi bisa selesai dalam waktu pengerjaan proyek **{lama_proyek} tahun**, maka jumlah motor tersebut dibagi dengan total kapasitas produksi per *line*. Hasilnya adalah rentang kebutuhan pembukaan bengkel baru secara nasional.
-    * **Swap Baterai:** Menggunakan rasio pemakaian harian rata-rata pengendara, dikalikan dengan durasi pengisian (*charging rate*), serta ditambah 20% stok *buffer* cadangan untuk mencegah antrean panjang di jam pulang kerja (*peak hour*).
-    * **Mesin Charging Mobil (SPKLU):** Berdasarkan rasio {rasio_spklu}:1, dihitung total SPKLU yang dibutuhkan. Kemudian disebar ke dalam 3 tipe sesuai target proyeksi 2030: Medium Charger ({p_med}% seharga Rp {h_med} Juta), Fast Charger ({p_fast}% seharga Rp {h_fast} Juta), dan Ultra Fast Charger ({p_ultra}% seharga Rp {h_ultra} Juta). Total kebutuhan unit dikalikan dengan masing-masing harga akan menghasilkan estimasi biaya akhir.
+    * **Jalur Transisi Motor:** Total target motor listrik ({total_motor_ev:.2f} Juta unit) dipecah menjadi Konversi ({porsi_konversi}%) sebesar **{vol_konversi:.2f} Juta unit** dan Beli Baru ({porsi_baru}%) sebesar **{vol_baru:.2f} Juta unit**.
+    * **Biaya Subsidi Pemerintah:** * Subsidi Konversi: {vol_konversi:.2f} Juta unit × Rp {subsidi_konv} Juta = **Rp {biaya_subsidi_konv:.2f} Triliun**.
+        * Subsidi Beli Baru: {vol_baru:.2f} Juta unit × Rp {subsidi_baru} Juta = **Rp {biaya_subsidi_baru:.2f} Triliun**.
+        * Total Subsidi: **Rp {total_biaya_subsidi:.2f} Triliun**.
+    * **Kebutuhan Line Bengkel:** * Satu jalur pengerjaan (*line*) mampu menyelesaikan 730 hingga 3.650 motor per tahun.
+        * Untuk menyelesaikan {vol_konversi:.2f} Juta motor konversi dalam proyek **{lama_proyek} tahun**, kita membagi total motor dengan kapasitas tersebut.
+        * Hasilnya adalah rentang kebutuhan pembukaan **{line_bengkel_min:,.0f} hingga {line_bengkel_max:,.0f} Line Bengkel** di seluruh Indonesia.
+    * **Swap Baterai:** Menggunakan rasio pemakaian harian rata-rata pengendara, dikalikan dengan durasi pengisian (*charging rate*), serta ditambah 20% stok *buffer* cadangan.
+    * **Mesin Charging Mobil (SPKLU):** Total {mobil_ev:.2f} Juta mobil listrik dibagi rasio kepadatan ideal ({rasio_spklu}:1) menghasilkan **{kebutuhan_spklu:,.0f} Unit SPKLU**.
+        * Biaya Medium Charger: {unit_med:,.0f} unit × Rp {h_med} Juta.
+        * Biaya Fast Charger: {unit_fast:,.0f} unit × Rp {h_fast} Juta.
+        * Biaya Ultra Fast Charger: {unit_ultra:,.0f} unit × Rp {h_ultra} Juta.
+        * Total Investasi SPKLU: **Rp {investasi_spklu:.2f} Triliun**.
     """)
 
 st.divider()
@@ -333,6 +338,8 @@ with st.container(border=True):
 with st.expander("💡 Dari Mana Angka Loss Pajak Berasal?", expanded=True):
     st.markdown(f"""
     **Alur Simulasi Angka:**
-    1. **Pajak Bahan Bakar (PBBKB):** Volume Pertalite yang dihemat ({vol_hemat_bensin:.2f} Juta kL atau Miliar Liter) adalah bensin yang tidak lagi dibeli oleh masyarakat karena beralih ke listrik. Angka ini dikalikan dengan harga bensin (Rp 10.000/liter), lalu diambil {tarif_pbbkb}% nya sebagai nilai Pendapatan Asli Daerah yang hilang.
-    2. **Pajak Kendaraan (PKB & SWDKLLJ):** Elektrifikasi, apalagi jika pemerintah memberikan insentif bebas pajak tahunan bagi EV, akan menghilangkan pemasukan dari perpanjangan STNK. Jika 100% populasi beralih ke kendaraan listrik, potensi kerugian maksimalnya diperkirakan mencapai Rp 43,86 Triliun secara nasional. Nilai kerugian saat ini (*Loss PKB*) menyesuaikan secara proporsional dengan rata-rata tingkat target elektrifikasi EV.
+    * **Loss Pajak Bahan Bakar (PBBKB):** Volume Pertalite yang dihemat ({vol_hemat_bensin:.2f} Juta kL) adalah bensin yang tidak lagi dibeli oleh masyarakat. 
+        * Perhitungan: {vol_hemat_bensin:.2f} Juta kL × Harga Bensin (Rp 10.000/liter) × Tarif PBBKB Daerah ({tarif_pbbkb}%) = **Rp {loss_pbbkb:.2f} Triliun**.
+    * **Loss Pajak Kendaraan (PKB & SWDKLLJ):** Jika 100% populasi beralih ke EV, potensi kerugian maksimal mencapai Rp 43,86 Triliun. 
+        * Perhitungan Aktual: Menyesuaikan rata-rata adopsi EV (saat ini {rata_rata_ev * 100:.2f}%), maka Rp 43,86 Triliun × {rata_rata_ev * 100:.2f}% = **Rp {loss_pkb:.2f} Triliun**.
     """)
