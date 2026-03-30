@@ -39,7 +39,6 @@ with st.container(border=True):
     fig_solar = px.line(df_solar_hist, x="Tahun", y="Konsumsi (Juta kL)", markers=True, title=r"Historis & Proyeksi Konsumsi Solar Nasional ($y = 32.41 + 3.82 \ln(x)$)")
     fig_solar.add_vline(x=2025, line_dash="dash", line_color="red", annotation_text="Proyeksi 2026 ->")
     fig_solar.update_traces(line_color="#e63946", marker=dict(size=10))
-    # Memaksa grafik melompat per 1 angka bulat (tanpa desimal 2020.5 & tanpa koma ribuan 2,020)
     fig_solar.update_layout(xaxis=dict(tickformat="d", dtick=1))
     st.plotly_chart(fig_solar, use_container_width=True, config={'staticPlot': True})
     
@@ -61,7 +60,7 @@ with st.container(border=True):
     html_cards_1a = f"""<div style="background-color:#f8fafc;padding:25px;border-radius:12px;margin-bottom:20px;border:1px solid #e2e8f0;display:flex;gap:20px;flex-wrap:wrap;"><div style="flex:1;min-width:280px;background:white;padding:20px;border-radius:10px;border-top:4px solid #f59e0b;box-shadow:0 2px 4px rgba(0,0,0,0.05);"><h4 style="color:#b45309;margin-top:0;font-size:17px;">🛢️ Neraca Pasokan Solar 2026</h4><p style="margin:8px 0;color:#334155;font-size:15px;">Proyeksi Konsumsi: <b>{konsumsi_2026:.2f} Jt KL</b></p><p style="margin:8px 0;color:#334155;font-size:15px;">Kebutuhan FAME ({target_fame}%): <b>{vol_fame:.2f} Jt KL</b></p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:15px 0;"><p style="margin:8px 0;color:#16a34a;font-size:16px;">✅ Fosil Tersedia: <b>{produksi_fosil_lokal:.2f} Jt KL</b></p><p style="margin:8px 0;color:#dc2626;font-size:16px;">⚠️ Sisa Impor Solar: <b>{vol_impor:.2f} Jt KL</b></p></div><div style="flex:1;min-width:280px;background:white;padding:20px;border-radius:10px;border-top:4px solid #3b82f6;box-shadow:0 2px 4px rgba(0,0,0,0.05);"><h4 style="color:#1d4ed8;margin-top:0;font-size:17px;">💰 Dampak Keuangan Negara</h4><p style="margin:8px 0;color:#334155;font-size:15px;">Hemat Subsidi Impor: <span style="color:#16a34a;">Rp {hemat_kotor_solar:.2f} T</span></p><p style="margin:8px 0;color:#334155;font-size:15px;">Biaya Selisih FAME: <span style="color:#dc2626;">- Rp {beban_fame:.2f} T</span></p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:15px 0;"><p style="margin:20px 0 8px 0;color:#334155;font-size:17px;">🛡️ Penghematan Bersih: <span style="color:#16a34a;"><b>Rp {hemat_bersih_solar:.2f} T</b></span></p></div></div>"""
     st.markdown(html_cards_1a, unsafe_allow_html=True)
 
-    with st.expander("💡 Buka Penjelasan & Rumus Perhitungan Solar (B50)"):
+    with st.expander("💡 Buka Penjelasan & Rumus Perhitungan Solar (B50)", expanded=True):
         st.markdown("""
         **Dari mana angka ini berasal?**
         - **Proyeksi Konsumsi (39,84 Jt kL):** Didapat dari rumus tren regresi logaritmik konsumsi solar tahun 2020-2025.
@@ -143,7 +142,7 @@ with st.expander("💡 Buka Detail Perhitungan Hemat Rakyat & Multiplier Effect 
         st.success(f"""#### 📈 Dorongan PDB Nasional:
 #### Rp {(hemat_rakyat * k_res):.2f} Triliun""")
     
-    # RUMUS DILETAKKAN DI BAWAH PENJELASAN
+    # RUMUS DI BAWAH PENJELASAN
     st.latex(r"k = \frac{1}{1 - c(1 - t) + m}")
     st.latex(r"\Delta \text{PDB} = E \times k")
 
@@ -174,7 +173,7 @@ with st.container(border=True):
     html_cards_2 = f"""<div style="background-color:#f8fafc;padding:25px;border-radius:12px;margin-bottom:20px;border:1px solid #e2e8f0;display:flex;gap:20px;flex-wrap:wrap;"><div style="flex:1;min-width:280px;background:white;padding:20px;border-radius:10px;border-top:4px solid #f59e0b;box-shadow:0 2px 4px rgba(0,0,0,0.05);"><h4 style="color:#b45309;margin-top:0;font-size:17px;">🛢️ Neraca Volume Impor Dicegah</h4><p style="margin:8px 0;color:#334155;font-size:15px;">Impor Solar: <b>{barel_solar:.2f} Jt Barel</b></p><p style="margin:8px 0;color:#334155;font-size:15px;">Impor Bensin: <b>{barel_bensin:.2f} Jt Barel</b></p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:15px 0;"><p style="margin:8px 0;color:#16a34a;font-size:16px;">✅ Total Dicegah: <b>{tot_barel:.2f} Jt Barel</b></p></div><div style="flex:1;min-width:280px;background:white;padding:20px;border-radius:10px;border-top:4px solid #3b82f6;box-shadow:0 2px 4px rgba(0,0,0,0.05);"><h4 style="color:#1d4ed8;margin-top:0;font-size:17px;">💵 Total Devisa Terselamatkan</h4><p style="margin:8px 0;color:#334155;font-size:15px;">Setara USD: <span style="color:#16a34a;">$ {hemat_usd_miliar:.2f} Miliar</span></p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:15px 0;"><p style="margin:20px 0 8px 0;color:#334155;font-size:17px;">🛡️ Total Rupiah: <span style="color:#16a34a;"><b>Rp {hemat_rp_devisa:.2f} T</b></span></p></div><div style="flex:1;min-width:280px;background:white;padding:20px;border-radius:10px;border-top:4px solid #10b981;box-shadow:0 2px 4px rgba(0,0,0,0.05);"><h4 style="color:#047857;margin-top:0;font-size:17px;">📈 Bantalan Makroekonomi</h4><p style="margin:8px 0;color:#334155;font-size:15px;">Menutup Defisit APBN 2026: <span style="color:#16a34a;"><b>{persen_defisit_tot:.2f} %</b></span></p><p style="margin:2px 0;color:#64748b;font-size:13px;">(Dari target defisit Rp 689,1 T)</p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:15px 0;"><p style="margin:8px 0;color:#334155;font-size:15px;">Porsi terhadap PDB 2025: <span style="color:#16a34a;"><b>{persen_pdb_tot:.2f} %</b></span></p><p style="margin:2px 0;color:#64748b;font-size:13px;">(Dari PDB Nominal Rp 23.821,1 T)</p></div></div>"""
     st.markdown(html_cards_2, unsafe_allow_html=True)
 
-    with st.expander("💡 Buka Detail Penjelasan & Rumus Ketahanan Devisa"):
+    with st.expander("💡 Buka Detail Penjelasan & Rumus Ketahanan Devisa", expanded=True):
         st.markdown("""
         **Bagaimana Nilai Devisa Ini Dihitung?**
         1. **Konversi ke Satuan Barel:** Di pasar global, minyak tidak dihitung dalam liter melainkan Barel. Konstanta konversinya adalah **1 kL = 6,2898 Barel**.
@@ -185,7 +184,7 @@ with st.container(border=True):
         4. **Rasio terhadap PDB Nominal 2025:** Membandingkan nilai devisa dengan total PDB Nominal 2025 (Rp 23.821,1 Triliun).
         """)
         
-        # RUMUS DILETAKKAN DI BAWAH PENJELASAN
+        # RUMUS DI BAWAH PENJELASAN
         st.latex(r"\text{Total Barel} = (V_{impor\_solar} + V_{hemat\_bensin}) \times 6,2898")
         st.latex(r"\text{Devisa (Rp)} = \text{Total Barel} \times \text{Harga Minyak (\$)} \times \text{Kurs}")
         st.latex(r"\% \text{ Defisit} = \frac{\text{Devisa (Rp)}}{\text{Defisit APBN 2026 (Rp 689,1 T)}} \times 100")
@@ -215,14 +214,14 @@ with st.container(border=True):
         else:
             st.error(f"**Defisit!** Butuh daya melampaui surplus PLN.")
             
-    with st.expander("💡 Buka Penjelasan & Rumus Skenario Listrik"):
+    with st.expander("💡 Buka Penjelasan & Rumus Skenario Listrik", expanded=True):
         st.markdown("""
         **Dari mana angka kebutuhan dan surplus ini berasal?**
         - **Kebutuhan Listrik Tambahan:** Diperoleh dari total volume bensin yang dihemat (dalam liter) dikalikan dengan faktor konversi energi. Menurut Kementerian ESDM, **1 Liter BBM setara dengan 1,2 kWh**.
         - **Surplus Listrik Nasional (36,31 TWh):** Berdasarkan data tahun 2025, produksi listrik nasional mencapai sekitar 354 TWh, sementara konsumsi berada di angka 317,69 TWh. Selisih inilah yang menjadi surplus (kapasitas menganggur) yang siap digunakan.
         """)
         
-        # RUMUS DILETAKKAN DI BAWAH PENJELASAN
+        # RUMUS DI BAWAH PENJELASAN
         st.latex(r"\text{Beban EV (TWh)} = \text{Volume Bensin Dihemat (Juta kL)} \times 1,2 \text{ kWh}")
         st.latex(r"\text{Surplus} = \text{Produksi Listrik (354 TWh)} - \text{Konsumsi (317,69 TWh)}")
 
@@ -231,10 +230,30 @@ st.divider()
 # ==========================================
 # 4. KEBUTUHAN INFRASTRUKTUR PENGISIAN DAYA
 # ==========================================
-st.header("4️⃣ Kebutuhan Infrastruktur Pengisian Daya")
-col_i1, col_i2 = st.columns(2)
+st.header("4️⃣ Kebutuhan Infrastruktur & Transisi Kendaraan")
+col_i1, col_i2, col_i3 = st.columns(3)
 
 with col_i1:
+    with st.container(border=True):
+        st.subheader("Bengkel Konversi Motor")
+        # Total populasi motor 145,24 Juta unit dikali target persentase
+        target_motor_unit = 145.24 * (target_ev_motor / 100)
+        
+        # Asumsi 1 line bengkel bisa mengerjakan 2 s/d 10 motor per hari (setara 730 - 3650 setahun)
+        kapasitas_min = 730
+        kapasitas_max = 3650
+        
+        # Kalkulasi kebutuhan Line Bengkel
+        line_bengkel_min = (target_motor_unit * 1_000_000) / kapasitas_max
+        line_bengkel_max = (target_motor_unit * 1_000_000) / kapasitas_min
+        
+        st.warning(f"""**Target Motor Dikonversi:**
+### {target_motor_unit:.2f} Juta Unit
+
+**Kebutuhan Line Bengkel:**
+### {line_bengkel_min:,.0f} - {line_bengkel_max:,.0f} Line""")
+
+with col_i2:
     with st.container(border=True):
         st.subheader("Swap Baterai Motor (SPBKLU)")
         porsi_swap = st.slider("Pengguna Swap (%)", 0, 100, 40)
@@ -244,7 +263,7 @@ with col_i1:
         st.warning(f"""**Kebutuhan Pack Baterai:**
 ### {estimasi_baterai:.2f} Juta Unit""")
 
-with col_i2:
+with col_i3:
     with st.container(border=True):
         st.subheader("Charging Mobil (SPKLU)")
         # Kalkulasi infrastruktur menggunakan target_ev_mobil
@@ -259,14 +278,16 @@ with col_i2:
 **Estimasi Biaya:**
 ### Rp {investasi_spklu:.2f} Triliun""")
 
-with st.expander("💡 Buka Detail Penjelasan & Rumus Infrastruktur"):
+with st.expander("💡 Buka Detail Penjelasan & Rumus Infrastruktur", expanded=True):
     st.markdown("""
-    **Penjelasan Perhitungan Infrastruktur:**
-    1. **Swap Baterai Motor (SPBKLU):** Menggunakan formula ketersediaan baterai (Battery Pool). Kebutuhan baterai beredar memperhitungkan total permintaan penukaran harian ($D$), durasi *charging* per baterai ($d$), dan rentang waktu operasional swap ($H$). Angka akhir ditambahkan *buffer* 20% (dikalikan 1.2) untuk mengantisipasi lonjakan permintaan (*peak hour*).
-    2. **Charging Mobil (SPKLU):** Diasumsikan 1 mesin SPKLU dapat melayani sejumlah target mobil (rasio ideal 15:1 di tahun 2030). Jumlah unit SPKLU yang dibutuhkan kemudian dikalikan dengan biaya investasi rata-rata per mesin (Rp 250 Juta).
+    **Penjelasan Perhitungan Infrastruktur Transisi:**
+    1. **Bengkel Konversi Motor:** Dari total populasi motor nasional sebesar 145,24 Juta unit, kita ambil persentase yang akan dielektrifikasi (Target). Jika 1 *line* (jalur kerja) di bengkel mampu mengkonversi 2 hingga 10 motor per hari, maka dalam setahun (365 hari) satu *line* bisa menyelesaikan 730 hingga 3.650 motor. Kebutuhan *line* dicari dengan membagi Target Motor dengan kapasitas tahunan tersebut.
+    2. **Swap Baterai Motor (SPBKLU):** Menggunakan formula ketersediaan baterai (Battery Pool). Kebutuhan baterai beredar memperhitungkan total permintaan penukaran harian ($D$), durasi *charging* per baterai ($d$), dan rentang waktu operasional swap ($H$). Angka akhir ditambahkan *buffer* 20% (dikalikan 1.2) untuk mengantisipasi lonjakan permintaan di jam sibuk.
+    3. **Charging Mobil (SPKLU):** Diasumsikan 1 mesin SPKLU dapat melayani sejumlah target mobil (rasio ideal 15:1 di tahun 2030). Jumlah unit SPKLU yang dibutuhkan kemudian dikalikan dengan biaya investasi rata-rata per mesin (sekitar Rp 250 Juta untuk pengisian daya Medium/Fast).
     """)
     
-    # RUMUS DILETAKKAN DI BAWAH PENJELASAN
+    # RUMUS DI BAWAH PENJELASAN
+    st.latex(r"\text{Line Bengkel} = \frac{\text{Target Motor (Unit)}}{\text{Kapasitas Konversi (730 s/d 3650 motor/tahun)}}")
     st.latex(r"B_{pool} = D \times \frac{d}{H} \times 1.2")
     st.latex(r"\text{Kebutuhan SPKLU} = \frac{\text{Jumlah Mobil Listrik}}{\text{Rasio SPKLU}}")
     st.latex(r"\text{Estimasi Biaya SPKLU} = \text{Kebutuhan SPKLU} \times \text{Rp } 250 \text{ Juta}")
@@ -283,7 +304,7 @@ with st.container(border=True):
     tarif_pbbkb = st.slider("Tarif PBBKB (%)", 5, 10, 10)
     loss_pbbkb = (vol_hemat_bensin * 10000 * (tarif_pbbkb / 100)) / 1000
     
-    # Loss PKB dihitung proporsional
+    # Loss PKB dihitung proporsional rata-rata motor dan mobil
     rata_rata_ev = (target_ev_motor + target_ev_mobil) / 200
     loss_pkb = 43.86 * rata_rata_ev
     
@@ -294,13 +315,13 @@ with st.container(border=True):
     c_p2.error(f"""#### 📉 Loss PKB & SWDKLLJ:
 #### Rp {loss_pkb:.2f} Triliun""")
 
-with st.expander("💡 Buka Detail Penjelasan & Rumus Loss Pajak"):
+with st.expander("💡 Buka Detail Penjelasan & Rumus Loss Pajak", expanded=True):
     st.markdown("""
-    **Penjelasan Dampak Pajak:**
-    1. **Pajak Bahan Bakar (PBBKB):** Dihitung dari volume Pertalite yang tidak lagi dibeli oleh masyarakat akibat beralih ke listrik (Volume). Angka ini dikalikan dengan asumsi harga bensin (Rp 10.000/liter) dan persentase tarif PBBKB yang berlaku di daerah (5% hingga 10%).
-    2. **Pajak Kendaraan (PKB & SWDKLLJ):** Elektrifikasi (terutama jika ada insentif bebas pajak untuk EV) berpotensi menghilangkan Pendapatan Asli Daerah dari kendaraan konvensional (ICE). Kerugian maksimal (jika 100% konversi) diperkirakan mencapai Rp 43,86 Triliun. Nilai loss akan menyesuaikan secara proporsional dengan rata-rata tingkat adopsi EV (Motor & Mobil).
+    **Penjelasan Dampak Pajak bagi Pemerintah Daerah:**
+    1. **Pajak Bahan Bakar (PBBKB):** Dihitung dari volume Pertalite yang tidak lagi dibeli oleh masyarakat akibat beralih ke listrik (Volume Dihemat). Angka ini dikalikan dengan asumsi harga bensin (Rp 10.000/liter) dan persentase tarif PBBKB yang berlaku di daerah (biasanya 5% hingga 10%).
+    2. **Pajak Kendaraan (PKB & SWDKLLJ):** Elektrifikasi (terutama dengan adanya insentif bebas pajak untuk EV saat ini) berpotensi menghilangkan Pendapatan Asli Daerah dari perpanjangan STNK kendaraan konvensional (ICE). Kerugian maksimal (jika 100% transisi) diperkirakan mencapai Rp 43,86 Triliun secara nasional. Nilai kerugian (*loss*) akan menyesuaikan secara proporsional dengan rata-rata tingkat adopsi EV.
     """)
     
-    # RUMUS DILETAKKAN DI BAWAH PENJELASAN
+    # RUMUS DI BAWAH PENJELASAN
     st.latex(r"L_{PBBKB} = \text{Volume Bensin Dihemat} \times \text{Rp } 10.000 \times \text{Tarif (\%)}")
     st.latex(r"L_{PKB} = \text{Rp } 43,86 \text{ Triliun} \times \left( \frac{\%EV_{motor} + \%EV_{mobil}}{200} \right)")
