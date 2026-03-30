@@ -279,7 +279,6 @@ with col_i3:
         
         with st.expander("⚙️ Atur Komposisi & Harga Mesin", expanded=False):
             st.markdown("**Geser Titik Untuk Komposisi (%)**")
-            # Slider 2 titik (Range Slider), angka thumb-nya sudah disembunyikan via CSS di atas
             st.markdown("<br>", unsafe_allow_html=True)
             batas = st.slider("Atur Batas Porsi", 0, 100, (55, 83), label_visibility="collapsed")
             
@@ -348,25 +347,30 @@ with st.container(border=True):
     st.markdown("Elektrifikasi menurunkan penerimaan Pajak Bahan Bakar Kendaraan Bermotor (PBBKB). Lebih buruk lagi, karena **EV saat ini bebas PKB (Pajak Kendaraan Bermotor) dan hanya membayar SWDKLLJ**, pemerintah daerah akan kehilangan 100% penerimaan pajak dari setiap kendaraan yang beralih ke listrik.")
     
     st.markdown("---")
-    tarif_pbbkb = st.slider("Tarif PBBKB Daerah (%)", 5, 10, 10)
+    
+    # BARIS 1: Input dan Output PBBKB disejajarkan
+    col_in_pbbkb, col_out_pbbkb = st.columns(2)
+    tarif_pbbkb = col_in_pbbkb.slider("Tarif PBBKB Daerah (%)", 5, 10, 10)
+    loss_pbbkb = (vol_hemat_bensin * 10000 * (tarif_pbbkb / 100)) / 1000
+    col_out_pbbkb.error(f"""#### 📉 Potensi Loss PBBKB:
+#### Rp {loss_pbbkb:.2f} Triliun""")
     
     st.markdown("---")
-    col_pkb1, col_pkb2 = st.columns(2)
-    pkb_mobil = col_pkb1.number_input("Rata-rata PKB Mobil <1400cc (Juta Rp/Unit)", value=2.50, min_value=1.85, max_value=3.32, step=0.01)
-    pkb_motor = col_pkb2.number_input("Rata-rata PKB Motor (Juta Rp/Unit)", value=0.25, min_value=0.10, max_value=0.50, step=0.01)
     
-    # Kalkulasi Loss
-    loss_pbbkb = (vol_hemat_bensin * 10000 * (tarif_pbbkb / 100)) / 1000
+    # BARIS 2: Input PKB (Mobil & Motor) dan Output Loss PKB disejajarkan
+    col_in_pkb, col_out_pkb = st.columns(2)
+    
+    with col_in_pkb:
+        # Membagi kolom input di kiri menjadi 2 lagi untuk Mobil dan Motor agar ringkas
+        c1, c2 = st.columns(2)
+        pkb_mobil = c1.number_input("Rata-rata PKB Mobil <1400cc (Juta Rp)", value=2.50, min_value=1.85, max_value=3.32, step=0.01)
+        pkb_motor = c2.number_input("Rata-rata PKB Motor (Juta Rp)", value=0.25, min_value=0.10, max_value=0.50, step=0.01)
     
     loss_pkb_mobil = (4.46 * (target_ev_mobil / 100)) * pkb_mobil
     loss_pkb_motor = (145.24 * (target_ev_motor / 100)) * pkb_motor
     loss_pkb_total = loss_pkb_mobil + loss_pkb_motor
     
-    col_loss1, col_loss2 = st.columns(2)
-    col_loss1.error(f"""#### 📉 Potensi Loss PBBKB:
-#### Rp {loss_pbbkb:.2f} Triliun""")
-    
-    col_loss2.error(f"""#### 📉 Potensi Loss PKB & SWDKLLJ:
+    col_out_pkb.error(f"""#### 📉 Potensi Loss PKB & SWDKLLJ:
 #### Rp {loss_pkb_total:.2f} Triliun""")
 
     st.info("""
