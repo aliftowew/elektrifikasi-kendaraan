@@ -43,14 +43,32 @@ with st.container(border=True):
                         title="Historis & Proyeksi Konsumsi Solar Nasional")
     fig_solar.add_vline(x=2025, line_dash="dash", line_color="red", annotation_text="Proyeksi 2026 ->")
     fig_solar.update_traces(line_color="#e63946", marker=dict(size=10))
-    # Lock grafik
     st.plotly_chart(fig_solar, use_container_width=True, config={'staticPlot': True})
     
     st.markdown("### 🎛️ Simulasi Komposisi FAME (Biosolar)")
+    
+    col_f1, col_f2 = st.columns([1, 1])
+    with col_f1:
+        st.info("""
+        **Keterangan Simbol:**
+        * $V_k$: Proyeksi konsumsi solar (39,84 Jt kL)
+        * $V_{lokal}$: Kapasitas kilang lokal (20,1 Jt kL)
+        * $\%F$: Persentase campuran FAME
+        * $I_{base}$: Baseline impor eksisting (4,9 Jt kL)
+        * $S$: Subsidi solar per liter (Rp5.150)
+        * $G$: Gap harga FAME vs Fosil per liter (Rp3.000)
+        """)
+    with col_f2:
+        st.latex(r"I_{baru} = \max(0, V_k(1 - \%F) - V_{lokal})")
+        st.latex(r"H_{kotor} = \max(0, I_{base} - I_{baru}) \times S")
+        st.latex(r"B_{fame} = \max(0, I_{base} - I_{baru}) \times G")
+        st.latex(r"H_{bersih} = H_{kotor} - B_{fame}")
+    
     target_fame = st.slider("Komposisi FAME (%)", min_value=30, max_value=80, value=50, step=5)
     
+    # Kalkulasi Dinamis
     konsumsi_2026 = 39.84
-    produksi_fosil_lokal = 20.1 # Eksisting + RDMP (1.8)
+    produksi_fosil_lokal = 20.1
     impor_baseline = 4.9
     
     vol_fame = konsumsi_2026 * (target_fame / 100)
@@ -62,15 +80,14 @@ with st.container(border=True):
     beban_fame = (impor_dihemat * 3000) / 1000 # Triliun
     hemat_bersih = hemat_kotor - beban_fame
     
-    st.info("💡 **Rumus Penghematan Bersih:**")
-    st.latex(r"\text{Hemat Bersih} = (\text{Vol Impor Dihemat} \times \text{Rp } 5.150) - (\text{Vol Impor Dihemat} \times \text{Rp } 3.000)")
+    st.divider()
     
     c1, c2, c3 = st.columns(3)
-    c1.warning(f"**Sisa Impor Solar:**\n\n{vol_impor:.2f} Juta kL")
-    c2.success(f"**Hemat Subsidi (Kotor):**\n\nRp {hemat_kotor:.2f} T")
-    c3.error(f"**Biaya FAME (BPDPKS):**\n\n- Rp {beban_fame:.2f} T")
+    c1.warning(f"**Sisa Impor Solar ($I_{{baru}}$):**\n\n{vol_impor:.2f} Juta kL")
+    c2.success(f"**Hemat Subsidi Kotor ($H_{{kotor}}$):**\n\nRp {hemat_kotor:.2f} T")
+    c3.error(f"**Biaya FAME ($B_{{fame}}$):**\n\n- Rp {beban_fame:.2f} T")
     
-    st.success(f"#### 💰 Penghematan Bersih Negara: Rp {hemat_bersih:.2f} Triliun")
+    st.success(f"#### 💰 Penghematan Bersih Negara ($H_{{bersih}}$): Rp {hemat_bersih:.2f} Triliun")
 
 # --- Sub-Poin Bensin ---
 with st.container(border=True):
@@ -104,11 +121,11 @@ with st.container(border=True):
     
     c_m1, c_m2 = st.columns(2)
     with c_m1:
-        st.info("💡 **Kalkulator Multiplier (k):**")
+        st.info("💡 **Kalkulator Multiplier ($k$):**")
         st.latex(r"k = \frac{1}{1 - c(1 - t) + m}")
-        c_val = st.number_input("MPC (c)", value=0.779)
-        t_val = st.number_input("Tax Rate (t)", value=0.118)
-        m_val = st.number_input("Import Prop. (m)", value=0.209)
+        c_val = st.number_input("MPC ($c$)", value=0.779)
+        t_val = st.number_input("Tax Rate ($t$)", value=0.118)
+        m_val = st.number_input("Import Prop. ($m$)", value=0.209)
         k_res = 1 / (1 - c_val * (1 - t_val) + m_val)
         
     with c_m2:
@@ -199,7 +216,7 @@ with st.container(border=True):
     st.markdown("Elektrifikasi menurunkan penerimaan Pajak Bahan Bakar (PBBKB) dan Pajak Kendaraan (PKB) daerah.")
     
     st.info("💡 **Rumus PBBKB:**")
-    st.latex(r"L_{PBBKB} = \text{Volume} \times \text{Harga} \times \text{Tarif}")
+    st.latex(r"L_{PBBKB} = V \times P \times t")
     
     tarif_pbbkb = st.slider("Tarif PBBKB (%)", 5, 10, 10)
     loss_pbbkb = (vol_hemat_bensin * 10000 * (tarif_pbbkb / 100)) / 1000
