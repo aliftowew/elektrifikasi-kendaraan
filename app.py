@@ -60,7 +60,7 @@ with st.container(border=True):
     html_cards_1a = f"""<div style="background-color:#f8fafc;padding:25px;border-radius:12px;margin-bottom:20px;border:1px solid #e2e8f0;display:flex;gap:20px;flex-wrap:wrap;"><div style="flex:1;min-width:280px;background:white;padding:20px;border-radius:10px;border-top:4px solid #f59e0b;box-shadow:0 2px 4px rgba(0,0,0,0.05);"><h4 style="color:#b45309;margin-top:0;font-size:17px;">🛢️ Neraca Pasokan Solar 2026</h4><p style="margin:8px 0;color:#334155;font-size:15px;">Proyeksi Konsumsi: <b>{konsumsi_2026:.2f} Jt KL</b></p><p style="margin:8px 0;color:#334155;font-size:15px;">Kebutuhan FAME ({target_fame}%): <b>{vol_fame:.2f} Jt KL</b></p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:15px 0;"><p style="margin:8px 0;color:#16a34a;font-size:16px;">✅ Fosil Tersedia: <b>{produksi_fosil_lokal:.2f} Jt KL</b></p><p style="margin:8px 0;color:#dc2626;font-size:16px;">⚠️ Sisa Impor Solar: <b>{vol_impor:.2f} Jt KL</b></p></div><div style="flex:1;min-width:280px;background:white;padding:20px;border-radius:10px;border-top:4px solid #3b82f6;box-shadow:0 2px 4px rgba(0,0,0,0.05);"><h4 style="color:#1d4ed8;margin-top:0;font-size:17px;">💰 Dampak Keuangan Negara</h4><p style="margin:8px 0;color:#334155;font-size:15px;">Hemat Subsidi Impor: <span style="color:#16a34a;">Rp {hemat_kotor_solar:.2f} T</span></p><p style="margin:8px 0;color:#334155;font-size:15px;">Biaya Selisih FAME: <span style="color:#dc2626;">- Rp {beban_fame:.2f} T</span></p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:15px 0;"><p style="margin:20px 0 8px 0;color:#334155;font-size:17px;">🛡️ Penghematan Bersih: <span style="color:#16a34a;"><b>Rp {hemat_bersih_solar:.2f} T</b></span></p></div></div>"""
     st.markdown(html_cards_1a, unsafe_allow_html=True)
 
-    with st.expander("💡 Dari Mana Angka Penghematan Solar Berasal?"):
+    with st.expander("💡 Dari Mana Angka Penghematan Solar Berasal?", expanded=True):
         st.markdown(f"""
         **Alur Simulasi Angka:**
         * **Kebutuhan Solar Fosil:** Proyeksi Konsumsi (39,84 Jt kL) dikurangi porsi campuran Biosolar (FAME). Pada komposisi {target_fame}%, dibutuhkan Fosil sebanyak {vol_fosil_dibutuhkan:.2f} Jt kL.
@@ -113,7 +113,7 @@ html_cards_1b = f"""<div style="background-color:#f8fafc;padding:25px;border-rad
 st.markdown(html_cards_1b, unsafe_allow_html=True)
 
 # MULTIPLIER EFFECT 
-with st.expander("💡 Dari Mana Angka Hemat Rakyat & Multiplier (PDB) Berasal?"):
+with st.expander("💡 Dari Mana Angka Hemat Rakyat & Multiplier (PDB) Berasal?", expanded=True):
     st.markdown(f"""
     **1. Analisis Biaya Kendaraan (Hemat Rakyat):**
     * **Biaya Motor Bensin:** Asumsi efisiensi 50 km/liter dengan harga BBM Rp 10.000/liter = **Rp 200 / km**.
@@ -171,7 +171,7 @@ with st.container(border=True):
     html_cards_2 = f"""<div style="background-color:#f8fafc;padding:25px;border-radius:12px;margin-bottom:20px;border:1px solid #e2e8f0;display:flex;gap:20px;flex-wrap:wrap;"><div style="flex:1;min-width:280px;background:white;padding:20px;border-radius:10px;border-top:4px solid #f59e0b;box-shadow:0 2px 4px rgba(0,0,0,0.05);"><h4 style="color:#b45309;margin-top:0;font-size:17px;">🛢️ Neraca Volume Impor Dicegah</h4><p style="margin:8px 0;color:#334155;font-size:15px;">Impor Solar: <b>{barel_solar:.2f} Jt Barel</b></p><p style="margin:8px 0;color:#334155;font-size:15px;">Impor Bensin: <b>{barel_bensin:.2f} Jt Barel</b></p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:15px 0;"><p style="margin:8px 0;color:#16a34a;font-size:16px;">✅ Total Dicegah: <b>{tot_barel:.2f} Jt Barel</b></p></div><div style="flex:1;min-width:280px;background:white;padding:20px;border-radius:10px;border-top:4px solid #3b82f6;box-shadow:0 2px 4px rgba(0,0,0,0.05);"><h4 style="color:#1d4ed8;margin-top:0;font-size:17px;">💵 Total Devisa Terselamatkan</h4><p style="margin:8px 0;color:#334155;font-size:15px;">Setara USD: <span style="color:#16a34a;">$ {hemat_usd_miliar:.2f} Miliar</span></p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:15px 0;"><p style="margin:20px 0 8px 0;color:#334155;font-size:17px;">🛡️ Total Rupiah: <span style="color:#16a34a;"><b>Rp {hemat_rp_devisa:.2f} T</b></span></p></div><div style="flex:1;min-width:280px;background:white;padding:20px;border-radius:10px;border-top:4px solid #10b981;box-shadow:0 2px 4px rgba(0,0,0,0.05);"><h4 style="color:#047857;margin-top:0;font-size:17px;">📈 Bantalan Makroekonomi</h4><p style="margin:8px 0;color:#334155;font-size:15px;">Menutup Defisit APBN: <span style="color:#16a34a;"><b>{persen_defisit_tot:.2f} %</b></span></p><p style="margin:2px 0;color:#64748b;font-size:13px;">(Dari target defisit 2026 Rp 689,1 T)</p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:15px 0;"><p style="margin:8px 0;color:#334155;font-size:15px;">Porsi terhadap PDB: <span style="color:#16a34a;"><b>{persen_pdb_tot:.2f} %</b></span></p><p style="margin:2px 0;color:#64748b;font-size:13px;">(Dari PDB Nominal 2025 Rp 23.821,1 T)</p></div></div>"""
     st.markdown(html_cards_2, unsafe_allow_html=True)
 
-    with st.expander("💡 Dari Mana Angka Ketahanan Devisa Berasal?"):
+    with st.expander("💡 Dari Mana Angka Ketahanan Devisa Berasal?", expanded=True):
         st.markdown(f"""
         **Alur Simulasi Angka:**
         * **Konversi ke Satuan Barel:** Di pasar global, minyak dihitung dalam Barel. Konstanta konversinya adalah 1 kL setara 6,2898 Barel.
@@ -204,11 +204,10 @@ with st.container(border=True):
         else:
             st.error(f"**Defisit!** Butuh daya melampaui surplus PLN.")
             
-    with st.expander("💡 Dari Mana Angka Skenario Listrik Berasal?"):
+    with st.expander("💡 Dari Mana Angka Skenario Listrik Berasal?", expanded=True):
         st.markdown(f"""
         **Alur Simulasi Angka:**
-        * **Kebutuhan Listrik Tambahan:** Berasal dari total bensin yang dihemat ({vol_hemat_bensin:.2f} Juta kL atau Miliar Liter) dikalikan dengan faktor konversi **1,2 kWh per liter**. 
-        * **Perhitungan Beban:** {vol_hemat_bensin:.2f} Juta kL × 1,2 = **{kebutuhan_twh:.2f} TWh** per tahun.
+        * **Kebutuhan Listrik Tambahan:** Berasal dari total bensin yang dihemat ({vol_hemat_bensin:.2f} Juta kL atau Miliar Liter) dikalikan dengan faktor konversi 1,2 kWh per liter. Hasilnya adalah beban tambahan **{kebutuhan_twh:.2f} TWh** per tahun.
         * **Surplus Listrik Nasional (Kapasitas Menganggur):** Berdasarkan data PLN, kapasitas produksi listrik nasional adalah 354 TWh, sementara yang terpakai hanya 317,69 TWh. 
         * **Kesimpulan:** Selisihnya menciptakan cadangan tenaga sebesar 354 − 317,69 = **36,31 TWh**, yang jauh lebih besar dari beban baru kendaraan listrik. Tidak perlu membangun pembangkit listrik baru secara mendadak.
         """)
@@ -269,16 +268,29 @@ with col_i3:
         rasio_spklu = st.number_input("Rasio Mobil : 1 SPKLU", value=15)
         kebutuhan_spklu = (mobil_ev * 1_000_000) / rasio_spklu
         
-        with st.expander("⚙️ Atur Komposisi & Harga Mesin"):
+        with st.expander("⚙️ Atur Komposisi & Harga Mesin", expanded=False):
             st.markdown("**Komposisi Charger (%) - Geser Titik**")
-            # Range Slider dengan 2 titik kontrol (Otomatis menghasilkan 3 porsi yang totalnya 100%)
-            batas = st.slider("Porsi Medium (Kiri) | Fast (Tengah) | Ultra (Kanan)", 0, 100, (55, 83), label_visibility="collapsed")
+            # Slider 2 titik (Range Slider)
+            batas = st.slider("Atur Batas Porsi", 0, 100, (55, 83), label_visibility="collapsed")
             
             p_med = batas[0]
             p_fast = batas[1] - batas[0]
             p_ultra = 100 - batas[1]
             
-            st.info(f"**Porsi:** Medium ({p_med}%) | Fast ({p_fast}%) | Ultra ({p_ultra}%)")
+            # Visualisasi Komposisi dengan Horizontal Stacked Bar Plotly (Batang 3 Warna)
+            df_bar = pd.DataFrame({
+                "Tipe": ["Medium", "Fast", "Ultra Fast"],
+                "Porsi": [p_med, p_fast, p_ultra],
+                "Kategori": ["Komposisi SPKLU", "Komposisi SPKLU", "Komposisi SPKLU"]
+            })
+            fig_bar = px.bar(df_bar, x="Porsi", y="Kategori", color="Tipe", orientation='h',
+                             color_discrete_map={"Medium": "#3b82f6", "Fast": "#f59e0b", "Ultra Fast": "#ef4444"},
+                             text="Porsi")
+            fig_bar.update_traces(texttemplate='%{text}%', textposition='inside')
+            fig_bar.update_layout(barmode='stack', height=100, margin=dict(l=0, r=0, t=0, b=0),
+                                  xaxis=dict(visible=False), yaxis=dict(visible=False),
+                                  showlegend=True, legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5))
+            st.plotly_chart(fig_bar, use_container_width=True, config={'staticPlot': True})
             
             st.markdown("**Harga per Unit (Juta Rp)**")
             col_h1, col_h2, col_h3 = st.columns(3)
@@ -298,7 +310,7 @@ with col_i3:
 **Estimasi Biaya Infrastruktur:**
 ### Rp {investasi_spklu:.2f} Triliun""")
 
-with st.expander("💡 Dari Mana Angka Infrastruktur & Subsidi Berasal?"):
+with st.expander("💡 Dari Mana Angka Infrastruktur & Subsidi Berasal?", expanded=True):
     st.markdown(f"""
     **Alur Simulasi Angka:**
     * **Jalur Transisi Motor:** Total target motor listrik ({total_motor_ev:.2f} Juta unit) dipecah menjadi Konversi ({porsi_konversi}%) sebesar **{vol_konversi:.2f} Juta unit** dan Beli Baru ({porsi_baru}%) sebesar **{vol_baru:.2f} Juta unit**.
@@ -338,7 +350,7 @@ with st.container(border=True):
     c_p2.error(f"""#### 📉 Loss PKB & SWDKLLJ:
 #### Rp {loss_pkb:.2f} Triliun""")
 
-with st.expander("💡 Dari Mana Angka Loss Pajak Berasal?"):
+with st.expander("💡 Dari Mana Angka Loss Pajak Berasal?", expanded=True):
     st.markdown(f"""
     **Alur Simulasi Angka:**
     * **Loss Pajak Bahan Bakar (PBBKB):** Volume Pertalite yang dihemat ({vol_hemat_bensin:.2f} Juta kL) adalah bensin yang tidak lagi dibeli oleh masyarakat. 
