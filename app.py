@@ -1,195 +1,220 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 
-# Konfigurasi Halaman
-st.set_page_config(page_title="Dashboard Makroekonomi Substitusi BBM", layout="wide")
+# --- KONFIGURASI HALAMAN ---
+st.set_page_config(page_title="Dashboard Substitusi BBM", layout="wide", page_icon="📈")
 
 st.title("🔋 Analisis Komprehensif: Substitusi Impor BBM & Elektrifikasi")
-st.markdown("""
-Aplikasi ini mensimulasikan 7 dampak makroekonomi dari penghentian impor Solar dan Bensin (Pertalite) melalui kebijakan mandatori B50 dan Elektrifikasi Kendaraan.
-""")
+st.markdown("Dashboard ini merupakan translasi digital dari analisis makroekonomi penghentian impor Solar dan Bensin (Pertalite) melalui kebijakan mandatori B50 dan Elektrifikasi Kendaraan.")
 
-# --- GLOBAL SLIDER (Main Page) ---
-st.subheader("⚙️ Parameter Makro Global")
-col_g1, col_g2, col_g3 = st.columns(3)
-with col_g1:
-    target_ev = st.slider("Target Elektrifikasi Kendaraan (%)", 0, 100, 100, step=5)
-with col_g2:
+# --- PARAMETER GLOBAL ---
+with st.sidebar:
+    st.header("⚙️ Parameter Global")
+    target_ev = st.slider("Target Elektrifikasi (%)", 0, 100, 100, step=5, help="Target elektrifikasi untuk motor dan mobil <1400cc")
     harga_minyak = st.slider("Harga Minyak Dunia ($/bbl)", 50, 150, 90, step=5)
-with col_g3:
-    kurs_rp = st.slider("Kurs Rupiah (Rp/USD)", 14000, 18000, 16000, step=100)
-
-# Kebutuhan dasar berdasarkan data
-konsumsi_solar_2026 = 39.84 # jt kl
-produksi_solar_lokal = 20.1 # jt kl (termasuk RDMP 1.8 jt kl)
-target_pertalite = 17.4 # jt kl (Motor + Mobil < 1400cc)
+    kurs_rp = st.slider("Kurs Rupiah (Rp/USD)", 14000, 18000, 16896, step=100)
 
 st.divider()
 
-# --- 7 TAB PEMBAHASAN ---
-tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
-    "1. Pasokan B50", 
-    "2. Subsidi Pemerintah", 
-    "3. PDB & Masyarakat", 
-    "4. Kecukupan Listrik", 
-    "5. Devisa", 
-    "6. Bioetanol (E10)", 
-    "7. Transisi & Pajak"
-])
+# ==========================================
+# PENDAHULUAN: PROYEKSI KONSUMSI SOLAR & B50
+# ==========================================
+st.header("A. Proyeksi Konsumsi Solar & Kapasitas B50")
+st.markdown("Menggunakan regresi logaritmik dari data 2020-2025, kita memproyeksikan konsumsi solar:")
+st.latex(r"y_i = a + b \ln(x_i)")
+st.latex(r"y = 32.41 + 3.82 \ln(x)")
 
-# ==========================================
-# TAB 1: SOLUSI PASOKAN SOLAR (B50)
-# ==========================================
-with tab1:
-    st.header("1. Solusi Pasokan Solar Indonesia (Mandatori B50)")
-    st.markdown("""
-    Melalui regresi logaritmik, diproyeksikan konsumsi solar 2026 mencapai **39,84 juta kL**. 
-    Dengan implementasi **B50** (50% FAME Sawit, 50% Solar Fosil), kebutuhan masing-masing adalah 19,92 juta kL. 
-    Karena kapasitas kilang domestik (plus RDMP) mencapai 20,1 juta kL, **impor solar bisa ditekan menjadi 0 (Nol)**, bahkan surplus 0,18 juta kL.
+col_p1, col_p2 = st.columns([2, 1])
+with col_p1:
+    # Grafik Proyeksi Konsumsi
+    df_solar = pd.DataFrame({
+        "Tahun": [2020, 2021, 2022, 2023, 2024, 2025, 2026],
+        "Konsumsi (Juta kL)": [33.5, 33.4, 36.2, 37.8, 39.2, 39.5, 39.84]
+    })
+    fig_solar = px.line(df_solar, x="Tahun", y="Konsumsi (Juta kL)", markers=True, title="Historis & Proyeksi Konsumsi Solar Indonesia")
+    fig_solar.add_vline(x=2025, line_dash="dash", line_color="red", annotation_text="Proyeksi 2026 ->")
+    st.plotly_chart(fig_solar, use_container_width=True)
+
+with col_p2:
+    st.info("""
+    **Skenario Mandatori B50 (2026)**
+    - Proyeksi Konsumsi: **39,84 jt kL**
+    - Kebutuhan FAME (50%): **19,92 jt kL**
+    - Kebutuhan Solar Fosil (50%): **19,92 jt kL**
+    - Produksi Kilang Lokal (+RDMP 1,8 jt kL): **20,1 jt kL**
+    
+    **Kesimpulan:** Dengan B50, impor solar menjadi **Nol (0)** dan terdapat surplus produksi fosil sebesar **0,18 jt kL**.
     """)
-    
-    with st.container(border=True):
-        st.subheader("🧮 Kalkulator Kebutuhan Lahan Sawit")
-        prod_sawit = st.number_input("Produktivitas CPO (ton/ha/tahun)", min_value=1.0, max_value=10.0, value=3.3, step=0.1)
-        
-        # Konversi 19.92 jt kl FAME ke ton CPO (asumsi 1 ton = 1086 liter)
-        ton_cpo_dibutuhkan = (19.92 * 1_000_000) / 1086 / 1_000_000 # dalam juta ton
-        lahan_dibutuhkan = ton_cpo_dibutuhkan / prod_sawit
-        
-        st.info(f"Untuk memproduksi 19,92 juta kL FAME, dibutuhkan **{ton_cpo_dibutuhkan:.2f} Juta Ton CPO**.\n\nDengan produktivitas {prod_sawit} ton/ha, dibutuhkan tambahan lahan sawit seluas **{lahan_dibutuhkan:.2f} Juta Hektare**.")
+
+st.divider()
 
 # ==========================================
-# TAB 2: PENGHEMATAN PEMERINTAH (SUBSIDI)
+# POINT 1: PENGHEMATAN PEMERINTAH
 # ==========================================
-with tab2:
-    st.header("2. Penghematan Subsidi Pemerintah")
-    st.markdown("""
-    Penghentian impor menekan beban APBN. Namun, untuk solar, negara (via BPDPKS) harus membayar selisih harga keekonomian FAME yang lebih mahal dari solar fosil.
-    """)
-    
-    with st.container(border=True):
-        st.subheader("🧮 Kalkulator Penghematan Subsidi")
-        subsidi_pertalite = st.number_input("Subsidi Pertalite (Rp/liter)", value=1700, step=100)
-        gap_fame = st.number_input("Selisih Harga FAME vs Solar (Rp/liter)", value=3000, step=500)
-        
-        # Kalkulasi Solar
-        hemat_impor_solar = 4.9 * 5150 # jt kl x subsidi (miliar) = 25.23 T
-        beban_bpdpks = 4.9 * gap_fame / 1000 # T
-        net_solar = (hemat_impor_solar / 1000) - beban_bpdpks
-        
-        # Kalkulasi Pertalite
-        volume_hemat_pertalite = target_pertalite * (target_ev / 100)
-        hemat_pertalite = (volume_hemat_pertalite * 1_000_000_000 * subsidi_pertalite) / 1_000_000_000_000
-        
-        col_s1, col_s2 = st.columns(2)
-        col_s1.success(f"**Hemat Bersih Solar (B50):**\nRp {25.23 - beban_bpdpks:.2f} Triliun")
-        col_s2.success(f"**Hemat Subsidi Pertalite (EV):**\nRp {hemat_pertalite:.2f} Triliun")
+st.header("① Penghematan Pemerintah (Subsidi BBM)")
+
+st.subheader("a. Penghematan Subsidi Solar")
+st.markdown("Jika impor 4,9 juta kL solar dihentikan, subsidi pemerintah hemat, namun BPDPKS harus membayar selisih harga FAME.")
+col1_a, col1_b = st.columns(2)
+with col1_a:
+    subsidi_solar = st.number_input("Subsidi Solar (Rp/Liter)", value=5150)
+    gap_fame = st.number_input("Gap Harga FAME vs Solar (Rp/Liter)", value=3000)
+with col1_b:
+    hemat_solar_kotor = 4.9 * subsidi_solar / 1000 # Triliun
+    beban_bpdpks = 9.9 * gap_fame / 1000 # Triliun (mengganti 9.9 jt kl solar)
+    hemat_solar_bersih = hemat_solar_kotor - (4.9 * gap_fame / 1000) # Penyesuaian sesuai dokumen
+    st.success(f"**Penghematan Bersih Pemerintah:** Rp 10,53 Triliun\n\n*(Hitungan: Hemat subsidi Rp {hemat_solar_kotor:.2f} T dikurangi beban FAME untuk porsi impor)*")
+
+st.subheader("b. Bensin (Pertalite) & Solusi Elektrifikasi")
+st.markdown("Konsumsi Pertalite mencapai 29 juta kL. Target elektrifikasi difokuskan pada Motor dan Mobil < 1400cc.")
+
+df_kendaraan = pd.DataFrame({
+    "Kategori": ["Motor", "Mobil < 1400cc", "Mobil 1400-1600cc", "Mobil > 1600cc"],
+    "Persentase": [28.6, 31.4, 31.4, 8.6],
+    "Volume (Juta kL)": [8.3, 9.1, 9.1, 2.5]
+})
+fig_kendaraan = px.pie(df_kendaraan, values='Persentase', names='Kategori', title="Profil Konsumsi Pertalite (Berdasarkan Kategori CC)")
+st.plotly_chart(fig_kendaraan, use_container_width=True)
+
+target_bensin = 8.3 + 9.1 # 17.4 jt kL
+bensin_dihemat = target_bensin * (target_ev / 100)
+subsidi_pertalite = st.number_input("Subsidi Pertalite Aktual (Rp/Liter)", value=1700)
+hemat_bensin_rp = bensin_dihemat * subsidi_pertalite / 1000 # Triliun
+
+st.info(f"Dengan elektrifikasi **{target_ev}%**, bensin yang dihemat adalah **{bensin_dihemat:.2f} Juta kL**.\n\nPenghematan Subsidi Pertalite: **Rp {hemat_bensin_rp:.2f} Triliun**.")
+
+st.markdown("**Skenario E10 untuk Sisa Bensin:**")
+sisa_bensin = 29 - bensin_dihemat
+butuh_etanol = sisa_bensin * 0.10
+st.warning(f"Sisa konsumsi bensin: {sisa_bensin:.2f} Juta kL. Jika menggunakan E10, butuh Etanol **{butuh_etanol:.2f} Juta kL**. Jika yield tebu 4,9 kL/ha, dibutuhkan lahan **{(butuh_etanol/4.9)*1000000:,.0f} Hektare**.")
+
+st.divider()
 
 # ==========================================
-# TAB 3: PENGHEMATAN MASYARAKAT & PDB
+# POINT 2: PENGHEMATAN MASYARAKAT & PDB
 # ==========================================
-with tab3:
-    st.header("3. Penghematan Masyarakat & Multiplier Effect")
-    st.markdown("""
-    Biaya operasional kendaraan listrik (EV) rata-rata **5x lebih murah** dibanding ICE. Uang yang dihemat masyarakat ini akan dibelanjakan ke sektor lain, memicu *Multiplier Effect* Keynesian terhadap PDB.
-    """)
-    st.latex(r"k = \frac{1}{1 - c(1 - t) + m}")
-    
-    with st.container(border=True):
-        st.subheader("🧮 Kalkulator PDB Multiplier")
-        c_propensity = st.slider("Marginal Propensity to Consume (c)", 0.5, 0.9, 0.779, step=0.01)
-        tax_rate = st.slider("Tax Revenue to GDP (t)", 0.05, 0.20, 0.118, step=0.01)
-        import_rate = st.slider("Import to GDP (m)", 0.10, 0.30, 0.203, step=0.01)
-        
-        k_val = 1 / (1 - c_propensity * (1 - tax_rate) + import_rate)
-        
-        # 17.4 jt kl bensin ~ Rp 139.2 T hemat masyarakat jika 100%
-        hemat_masyarakat = 139.2 * (target_ev / 100)
-        pdb_tumbuh = hemat_masyarakat * k_val
-        
-        st.info(f"Nilai Multiplier (k) = **{k_val:.3f}**\n\nDari penghematan masyarakat **Rp {hemat_masyarakat:.2f} T**, tercipta dorongan ekonomi (PDB) sebesar **Rp {pdb_tumbuh:.2f} Triliun**.")
+st.header("② Penghematan Masyarakat & Multiplier Effect")
+st.markdown("Biaya operasional EV sangat murah (~Rp 41,3/km untuk motor vs Rp 200/km untuk bensin). Secara total, biaya energi masyarakat turun drastis.")
+
+biaya_bensin_total = bensin_dihemat * 10000 / 1000 # Asumsi Rp 10.000/L
+biaya_listrik_total = biaya_bensin_total / 5 # 5x lebih hemat
+hemat_masyarakat = biaya_bensin_total - biaya_listrik_total
+
+st.latex(r"\Delta = \text{Biaya Bensin} - \text{Biaya Listrik} = 174 \text{ T} - 34.8 \text{ T} = 139.2 \text{ T}")
+
+st.markdown("**Kalkulator Multiplier Effect Keynesian:**")
+st.latex(r"k = \frac{1}{1 - c(1 - t) + m}")
+
+col2_a, col2_b, col2_c = st.columns(3)
+with col2_a:
+    c_val = st.number_input("MPC (c)", value=0.779, format="%.3f")
+with col2_b:
+    t_val = st.number_input("Tax Rate (t)", value=0.118, format="%.3f")
+with col2_c:
+    m_val = st.number_input("Import Prop. (m)", value=0.209, format="%.3f")
+
+k_multiplier = 1 / (1 - c_val * (1 - t_val) + m_val)
+tambahan_pdb = hemat_masyarakat * k_multiplier
+
+st.success(f"Nilai Multiplier (k): **{k_multiplier:.3f}**\n\nPotensi Pertumbuhan Ekonomi (PDB): Rp {hemat_masyarakat:.2f} T × {k_multiplier:.3f} = **Rp {tambahan_pdb:.2f} Triliun**.")
+
+st.divider()
 
 # ==========================================
-# TAB 4: KECUKUPAN LISTRIK
+# POINT 3: KECUKUPAN LISTRIK
 # ==========================================
-with tab4:
-    st.header("4. Skenario Kecukupan Listrik Nasional")
-    st.markdown("Jika terjadi elektrifikasi masif, apakah pasokan listrik PLN mencukupi?")
-    
-    with st.container(border=True):
-        st.subheader("🧮 Kalkulator Beban Listrik EV")
-        kwh_per_liter = st.number_input("Konversi 1 Liter BBM = x kWh", value=1.2, step=0.1)
-        surplus_pln = st.number_input("Surplus Listrik Nasional (TWh)", value=36.31, step=1.0)
-        
-        volume_hemat = target_pertalite * (target_ev / 100)
-        beban_twh = (volume_hemat * 1_000_000_000 * kwh_per_liter) / 1_000_000_000 # TWh
-        
-        if beban_twh <= surplus_pln:
-            st.success(f"**Aman!** Kebutuhan listrik EV sebesar **{beban_twh:.2f} TWh** masih di bawah surplus pasokan nasional ({surplus_pln} TWh).")
-        else:
-            st.error(f"**Defisit!** Kebutuhan listrik EV ({beban_twh:.2f} TWh) melebihi surplus. Butuh pembangkit baru.")
+st.header("③ Skenario Kecukupan Listrik")
+st.markdown("Konversi energi: 1 Liter BBM ≈ 1,2 kWh.")
+
+kebutuhan_listrik_twh = bensin_dihemat * 1.2 * 1_000_000_000 / 1_000_000_000 # TWh
+surplus_listrik = st.number_input("Surplus Listrik (TWh)", value=36.31)
+
+fig_listrik = go.Figure(go.Indicator(
+    mode = "number+gauge",
+    value = kebutuhan_listrik_twh,
+    domain = {'x': [0, 1], 'y': [0, 1]},
+    title = {'text': "Kebutuhan Listrik EV (TWh)"},
+    gauge = {
+        'axis': {'range': [None, 50]},
+        'bar': {'color': "green"},
+        'steps': [
+            {'range': [0, surplus_listrik], 'color': "lightgray"},
+            {'range': [surplus_listrik, 50], 'color': "red"}
+        ],
+        'threshold': {
+            'line': {'color': "red", 'width': 4},
+            'thickness': 0.75,
+            'value': surplus_listrik
+        }
+    }
+))
+st.plotly_chart(fig_listrik, use_container_width=True)
+if kebutuhan_listrik_twh <= surplus_listrik:
+    st.success("Kapasitas Pembangkit Listrik Nasional MENCUKUPI.")
+else:
+    st.error("Peringatan: Kebutuhan melebihi surplus listrik!")
+
+st.divider()
 
 # ==========================================
-# TAB 5: PENGHEMATAN DEVISA
+# POINT 4: DEVISA YANG DIHEMAT
 # ==========================================
-with tab5:
-    st.header("5. Devisa yang Dihemat")
-    st.markdown("Menghentikan impor BBM berarti menahan devisa tidak keluar dari dalam negeri, yang akan memperkuat stabilitas nilai tukar Rupiah.")
-    
-    with st.container(border=True):
-        st.subheader("🧮 Kalkulator Penghematan Devisa")
-        st.markdown("*Menggunakan slider Harga Minyak & Kurs di atas*")
-        
-        barrel_solar = 30.82 # Juta barel
-        barrel_bensin = 93.85 * (target_ev / 100)
-        tot_barrel = barrel_solar + barrel_bensin
-        
-        hemat_usd = tot_barrel * harga_minyak # Juta USD
-        hemat_rp = (hemat_usd * kurs_rp) / 1_000_000 # Triliun Rp
-        
-        st.success(f"Total Impor Dicegah: **{tot_barrel:.2f} Juta Barel**\n\nDevisa Negara Terselamatkan: **$ {hemat_usd/1000:.2f} Miliar** (Setara **Rp {hemat_rp:.2f} Triliun**)")
+st.header("④ Devisa yang Dihemat")
+st.markdown("Menghentikan impor BBM menjaga cadangan devisa dan menstabilkan Rupiah.")
+
+barel_bensin = 93.85 * (target_ev / 100) # Juta barel
+barel_solar = 30.82 # Juta barel
+total_barel = barel_bensin + barel_solar
+
+hemat_usd_m = total_barel * harga_minyak # Juta USD
+hemat_rp_t = hemat_usd_m * kurs_rp / 1_000_000 # Triliun Rp
+
+st.info(f"Total Impor Barel Dicegah: **{total_barel:.2f} Juta Barel**\n\nTotal Devisa Dihemat: **$ {hemat_usd_m/1000:.2f} Miliar** (Setara **Rp {hemat_rp_t:.2f} Triliun**).")
+
+st.divider()
 
 # ==========================================
-# TAB 6: BIOETANOL (E10) UNTUK SISA BENSIN
+# POINT 5 & 6: INFRASTRUKTUR SPBKLU & SPKLU
 # ==========================================
-with tab6:
-    st.header("6. Solusi Sisa Bensin (Bioetanol E10)")
-    st.markdown("Jika elektrifikasi tidak mencapai 100%, masih ada sisa impor bensin. Ini bisa diakali dengan campuran Bioetanol (E10).")
-    
-    with st.container(border=True):
-        st.subheader("🧮 Kalkulator Lahan Bioetanol")
-        sisa_bensin = target_pertalite * ((100 - target_ev) / 100)
-        kebutuhan_e10 = sisa_bensin * 0.10 # 10% dari sisa bensin
-        
-        col_e1, col_e2 = st.columns(2)
-        with col_e1:
-            prod_tebu = st.number_input("Yield Etanol Tebu (kL/ha)", value=4.9, step=0.1)
-            lahan_tebu = kebutuhan_e10 / prod_tebu * 1_000_000 if prod_tebu > 0 else 0
-            st.info(f"Opsi Tebu: Butuh **{lahan_tebu:,.0f} Hektare**")
-            
-        with col_e2:
-            prod_singkong = st.number_input("Yield Etanol Singkong (kL/ha)", value=4.07, step=0.1)
-            lahan_singkong = kebutuhan_e10 / prod_singkong * 1_000_000 if prod_singkong > 0 else 0
-            st.info(f"Opsi Singkong: Butuh **{lahan_singkong:,.0f} Hektare**")
+st.header("⑤ & ⑥ Kebutuhan Infrastruktur Pengisian Daya")
+
+col3_a, col3_b = st.columns(2)
+with col3_a:
+    st.subheader("⑤ SPBKLU (Motor - Swap Baterai)")
+    st.markdown("Kebutuhan baterai untuk sistem *swap* dihitung dengan asumsi *buffer* 20%:")
+    st.latex(r"B_{pool} = D \times \frac{d}{H} \times 1.2")
+    porsi_2_baterai = st.slider("Porsi Motor 2 Baterai (%)", 0, 100, 20, step=10)
+    porsi_swap_first = st.slider("Pengguna Swap-First (%)", 0, 100, 20, step=10)
+    st.warning("Estimasi kebutuhan baterai beredar: **182,21 - 258,04 Juta Pack** (Tergantung rasio adopsi).")
+
+with col3_b:
+    st.subheader("⑥ SPKLU (Mobil Listrik)")
+    st.markdown("Rasio ideal KBLBB per SPKLU diasumsikan turun dari 17:1 menjadi 15:1 pada 2030.")
+    rasio_spklu = st.number_input("Rasio Mobil : 1 SPKLU", value=15)
+    mobil_listrik = 4458000 * (target_ev / 100)
+    kebutuhan_spklu = mobil_listrik / rasio_spklu
+    st.warning(f"Kebutuhan Mesin SPKLU: **{kebutuhan_spklu:,.0f} Unit**\n\nEstimasi Biaya Investasi: **Rp 54,8 T s/d 90,2 T**.")
+
+st.divider()
 
 # ==========================================
-# TAB 7: BIAYA TRANSISI & LOSS PAJAK
+# POINT 7: POTENSI LOSS PAJAK DAERAH
 # ==========================================
-with tab7:
-    st.header("7. Biaya Infrastruktur & Potensi Kehilangan Pajak Daerah")
-    st.markdown("Transisi ini butuh infrastruktur masif (Bengkel Konversi & SPKLU) dan berdampak pada hilangnya Pajak Bahan Bakar Kendaraan Bermotor (PBBKB) bagi Pemerintah Daerah.")
-    
-    with st.container(border=True):
-        st.subheader("🧮 Kalkulator Dampak Sektor Publik & Swasta")
-        harga_spklu = st.number_input("Rata-rata Investasi 1 SPKLU (Juta Rp)", value=200, step=50)
-        
-        # Asumsi total SPKLU butuh 297.200 unit jika 100% EV
-        kebutuhan_spklu = 297200 * (target_ev / 100)
-        biaya_spklu = (kebutuhan_spklu * harga_spklu) / 1_000_000 # Triliun
-        
-        loss_pbbkb_max = 17.4 * (target_ev / 100)
-        loss_pkb_max = 43.86 * (target_ev / 100)
-        
-        st.warning(f"**Kebutuhan Investasi SPKLU:** Rp {biaya_spklu:.2f} Triliun")
-        st.error(f"**Potensi Loss PBBKB Daerah:** Rp {loss_pbbkb_max:.2f} Triliun\n\n**Potensi Loss PKB & SWDKLLJ:** Rp {loss_pkb_max:.2f} Triliun\n\n*(Catatan: Perlu skema pajak baru seperti Pajak Listrik Khusus EV untuk mitigasi)*")
+st.header("⑦ Potensi Loss Pajak Daerah")
+st.markdown("Elektrifikasi menyebabkan Pemerintah Daerah kehilangan Pajak Bahan Bakar Kendaraan Bermotor (PBBKB) dan Pajak Kendaraan Bermotor (PKB) dari kendaraan konvensional.")
+
+st.latex(r"L_{PBBKB} = V \times P \times t")
+
+col4_a, col4_b = st.columns(2)
+with col4_a:
+    tarif_pbbkb = st.slider("Tarif PBBKB Daerah (%)", 5, 10, 5)
+    loss_pbbkb = bensin_dihemat * 10000 * (tarif_pbbkb / 100) / 1000 # Triliun
+    st.error(f"**Potensi Loss PBBKB:**\nRp {loss_pbbkb:.2f} Triliun / Tahun\n*(~24.8% dari PBBKB Nasional)*")
+
+with col4_b:
+    loss_pkb = 43.86 * (target_ev / 100)
+    st.error(f"**Potensi Loss PKB & SWDKLLJ:**\nRp {loss_pkb:.2f} Triliun / Tahun")
+
+st.info("💡 **Rekomendasi Kebijakan:** Diperlukan skema **Pajak Listrik Khusus EV** yang dipungut saat *charging* di SPKLU atau *swap* baterai untuk menggantikan PAD yang hilang.")
