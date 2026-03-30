@@ -33,11 +33,11 @@ with st.container(border=True):
     
     # Grafik Historis
     df_solar_hist = pd.DataFrame({
-        "Tahun": [2020, 2021, 2022, 2023, 2024, 2025, 2026],
+        "Tahun": ["2020", "2021", "2022", "2023", "2024", "2025", "2026"],
         "Konsumsi (Juta kL)": [33.5, 33.4, 36.2, 37.8, 39.2, 39.5, 39.84]
     })
     fig_solar = px.line(df_solar_hist, x="Tahun", y="Konsumsi (Juta kL)", markers=True, title="Historis & Proyeksi Konsumsi Solar Nasional")
-    fig_solar.add_vline(x=2025, line_dash="dash", line_color="red", annotation_text="Proyeksi 2026 ->")
+    fig_solar.add_vline(x="2025", line_dash="dash", line_color="red", annotation_text="Proyeksi 2026 ->")
     fig_solar.update_traces(line_color="#e63946", marker=dict(size=10))
     fig_solar.update_layout(xaxis=dict(tickformat="d", dtick=1))
     st.plotly_chart(fig_solar, use_container_width=True, config={'staticPlot': True})
@@ -229,8 +229,8 @@ with col_i1:
         porsi_baru = 100 - porsi_konversi
         
         col_s1, col_s2 = st.columns(2)
-        subsidi_konv = col_s1.number_input("Subsidi Konversi (Juta Rp/unit)", value=10.0, step=1.0)
-        subsidi_baru = col_s2.number_input("Subsidi Unit Baru (Juta Rp/unit)", value=7.0, step=1.0)
+        subsidi_konv = col_s1.number_input("Subsidi Konversi (Juta Rp)", value=10.0, step=1.0)
+        subsidi_baru = col_s2.number_input("Subsidi Unit Baru (Juta Rp)", value=7.0, step=1.0)
         
         # Kalkulasi
         total_motor_ev = 145.24 * (target_ev_motor / 100)
@@ -270,7 +270,24 @@ with col_i3:
         mobil_ev = 4.46 * (target_ev_mobil / 100)
         rasio_spklu = st.number_input("Rasio Mobil : 1 SPKLU", value=15)
         kebutuhan_spklu = (mobil_ev * 1_000_000) / rasio_spklu
-        investasi_spklu = (kebutuhan_spklu * 250) / 1_000_000 # Asumsi 250jt
+        
+        with st.expander("⚙️ Atur Komposisi & Harga Mesin"):
+            p_med = st.number_input("Porsi Medium (%)", value=55)
+            h_med = st.number_input("Harga Medium (Juta Rp)", value=150)
+            
+            p_fast = st.number_input("Porsi Fast (%)", value=28)
+            h_fast = st.number_input("Harga Fast (Juta Rp)", value=350)
+            
+            p_ultra = st.number_input("Porsi Ultra Fast (%)", value=17)
+            h_ultra = st.number_input("Harga Ultra Fast (Juta Rp)", value=500)
+            
+        total_p = p_med + p_fast + p_ultra if (p_med + p_fast + p_ultra) > 0 else 100
+        
+        unit_med = kebutuhan_spklu * (p_med / total_p)
+        unit_fast = kebutuhan_spklu * (p_fast / total_p)
+        unit_ultra = kebutuhan_spklu * (p_ultra / total_p)
+        
+        investasi_spklu = ((unit_med * h_med) + (unit_fast * h_fast) + (unit_ultra * h_ultra)) / 1_000_000 
         
         st.warning(f"""**Kebutuhan Mesin:**
 ### {kebutuhan_spklu:,.0f} Unit
@@ -286,9 +303,9 @@ with st.expander("💡 Dari Mana Angka Infrastruktur & Subsidi Berasal?", expand
       - Anggaran Unit Baru: {vol_baru:.2f} Juta unit $\\times$ Rp {subsidi_baru} Juta = **Rp {biaya_subsidi_baru:.2f} Triliun**.
       - Total keduanya digabung menghasilkan **Rp {total_biaya_subsidi:.2f} Triliun**.
     * **Kebutuhan Line Bengkel:** - Satu jalur pengerjaan (*line*) di bengkel diasumsikan mampu mengkonversi 2 hingga 10 motor per hari, atau setara dengan penyelesaian 730 hingga 3.650 motor per tahun.
-      - Agar seluruh {vol_konversi:.2f} Juta motor konversi bisa selesai dalam waktu pengerjaan proyek **{lama_proyek} tahun**, maka jumlah motor tersebut dibagi dengan total kapasitas produksi per *line*. Hasilnya adalah kebutuhan pembukaan bengkel baru di seluruh wilayah.
-    * **Swap Baterai:** Menggunakan rasio pemakaian harian pengendara, dikalikan dengan durasi antrean pengisian (charging rate), serta ditambahkan 20% stok *buffer* untuk mencegah kelangkaan baterai di jam pulang kerja (*peak hour*).
-    * **Mesin Charging Mobil (SPKLU):** Jumlah mobil listrik diproyeksikan dibagi dengan rasio kepadatan ideal per mesin ({rasio_spklu}:1), lalu dikalikan dengan biaya investasi standar per unit SPKLU sebesar Rp 250 Juta.
+      - Agar seluruh {vol_konversi:.2f} Juta motor konversi bisa selesai dalam waktu pengerjaan proyek **{lama_proyek} tahun**, maka jumlah motor tersebut dibagi dengan total kapasitas produksi per *line*. Hasilnya adalah rentang kebutuhan pembukaan bengkel baru secara nasional.
+    * **Swap Baterai:** Menggunakan rasio pemakaian harian rata-rata pengendara, dikalikan dengan durasi pengisian (*charging rate*), serta ditambah 20% stok *buffer* cadangan untuk mencegah antrean panjang di jam pulang kerja (*peak hour*).
+    * **Mesin Charging Mobil (SPKLU):** Berdasarkan rasio {rasio_spklu}:1, dihitung total SPKLU yang dibutuhkan. Kemudian disebar ke dalam 3 tipe sesuai target proyeksi 2030: Medium Charger ({p_med}% seharga Rp {h_med} Juta), Fast Charger ({p_fast}% seharga Rp {h_fast} Juta), dan Ultra Fast Charger ({p_ultra}% seharga Rp {h_ultra} Juta). Total kebutuhan unit dikalikan dengan masing-masing harga akan menghasilkan estimasi biaya akhir.
     """)
 
 st.divider()
@@ -316,6 +333,6 @@ with st.container(border=True):
 with st.expander("💡 Dari Mana Angka Loss Pajak Berasal?", expanded=True):
     st.markdown(f"""
     **Alur Simulasi Angka:**
-    1. **Pajak Bahan Bakar (PBBKB):** Volume Pertalite yang dihemat ({vol_hemat_bensin:.2f} Juta kL atau Miliar Liter) adalah bensin yang tidak lagi dibeli oleh masyarakat. Angka ini dikalikan dengan harga bensin (Rp 10.000/liter), lalu diambil {tarif_pbbkb}% nya sebagai nilai Pendapatan Asli Daerah yang hilang.
-    2. **Pajak Kendaraan (PKB & SWDKLLJ):** Elektrifikasi, apalagi jika pemerintah memberikan insentif bebas pajak tahunan bagi EV, akan menghilangkan pemasukan dari perpanjangan STNK. Jika 100% populasi beralih ke EV, potensi kerugian maksimalnya mencapai Rp 43,86 Triliun. Nilai aktual (*Loss PKB*) ini akan terus menyesuaikan persentase target adopsi EV dari penggeser (*slider*) di atas.
+    1. **Pajak Bahan Bakar (PBBKB):** Volume Pertalite yang dihemat ({vol_hemat_bensin:.2f} Juta kL atau Miliar Liter) adalah bensin yang tidak lagi dibeli oleh masyarakat karena beralih ke listrik. Angka ini dikalikan dengan harga bensin (Rp 10.000/liter), lalu diambil {tarif_pbbkb}% nya sebagai nilai Pendapatan Asli Daerah yang hilang.
+    2. **Pajak Kendaraan (PKB & SWDKLLJ):** Elektrifikasi, apalagi jika pemerintah memberikan insentif bebas pajak tahunan bagi EV, akan menghilangkan pemasukan dari perpanjangan STNK. Jika 100% populasi beralih ke kendaraan listrik, potensi kerugian maksimalnya diperkirakan mencapai Rp 43,86 Triliun secara nasional. Nilai kerugian saat ini (*Loss PKB*) menyesuaikan secara proporsional dengan rata-rata tingkat target elektrifikasi EV.
     """)
