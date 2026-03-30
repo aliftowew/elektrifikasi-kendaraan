@@ -114,40 +114,8 @@ with col_b2:
     opsi_tebu = keb_etanol / 4.9
     opsi_singkong = keb_etanol / 4.07
 
-# HTML CARDS (Sudah diperbaiki indentasinya & dihilangkan judulnya)
-html_cards = f"""
-<div style="background-color: #f8fafc; padding: 25px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #e2e8f0; display: flex; gap: 20px; flex-wrap: wrap;">
-    <div style="flex: 1; min-width: 280px; background: white; padding: 20px; border-radius: 10px; border-top: 4px solid #f59e0b; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-        <h4 style="color: #b45309; margin-top: 0; font-size: 17px;">⛽ Neraca Pertalite Nasional</h4>
-        <p style="margin: 8px 0; color: #334155; font-size: 15px;">Total Konsumsi: <b>{vol_total_pertalite:.2f} Jt KL</b></p>
-        <p style="margin: 8px 0; color: #334155; font-size: 15px;">Import Awal: <b>{import_awal:.2f} Jt KL</b></p>
-        <hr style="border: none; border-top: 1px dashed #cbd5e1; margin: 15px 0;">
-        <p style="margin: 8px 0; color: #16a34a; font-size: 16px;">✅ Bensin Dihemat: <b>{vol_hemat_bensin:.2f} Jt KL</b></p>
-        <p style="margin: 8px 0; color: #dc2626; font-size: 16px;">⚠️ Sisa Import: <b>{sisa_import:.2f} Jt KL</b></p>
-        <p style="margin: 20px 0 5px 0; color: #475569; font-size: 15px;">Sisa Konsumsi: <b>{sisa_konsumsi:.2f} Jt KL</b></p>
-    </div>
-
-    <div style="flex: 1; min-width: 280px; background: white; padding: 20px; border-radius: 10px; border-top: 4px solid #3b82f6; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-        <h4 style="color: #1d4ed8; margin-top: 0; font-size: 17px;">💰 Dampak Ekonomi & Devisa</h4>
-        <p style="margin: 8px 0; color: #334155; font-size: 15px;">Hemat Kas Negara: <span style="color: #16a34a;">Rp {hemat_kas_negara:.2f} T</span></p>
-        <p style="margin: 8px 0; color: #334155; font-size: 15px;">Hemat Rakyat: <span style="color: #16a34a;">Rp {hemat_rakyat:.2f} T</span></p>
-        <hr style="border: none; border-top: 1px dashed #cbd5e1; margin: 15px 0;">
-        <p style="margin: 8px 0; color: #334155; font-size: 15px;">Efek Pengganda (K): <span style="color: #2563eb;">+Rp {efek_pengganda:.2f} T</span></p>
-        <p style="margin: 2px 0; color: #64748b; font-size: 13px;">(Menaikkan +{persen_pdb:.2f}% ke PDB Nominal)</p>
-        <p style="margin: 20px 0 8px 0; color: #334155; font-size: 17px;">🛡️ Devisa Aman: <span style="color: #16a34a;"><b>Rp {devisa_aman:.2f} T</b></span></p>
-        <div style="background-color: #fef3c7; border: 1px solid #fde68a; padding: 6px 12px; border-radius: 6px; display: inline-block; font-size: 13px; color: #92400e;">Setara menutup <b>{persen_defisit:.2f}%</b> Defisit 2026</div>
-    </div>
-
-    <div style="flex: 1; min-width: 280px; background: white; padding: 20px; border-radius: 10px; border-top: 4px solid #10b981; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-        <h4 style="color: #047857; margin-top: 0; font-size: 17px;">🌾 Kebutuhan Lahan E10</h4>
-        <p style="margin: 8px 0; color: #64748b; font-size: 13px;">(Untuk mem-backup 10% dari sisa konsumsi)</p>
-        <p style="margin: 15px 0 8px 0; color: #334155; font-size: 15px;">Kebutuhan Etanol: <b>{keb_etanol:.2f} Jt KL</b></p>
-        <hr style="border: none; border-top: 1px dashed #cbd5e1; margin: 15px 0;">
-        <p style="margin: 8px 0; color: #334155; font-size: 15px;">Opsi Tebu: <b>{opsi_tebu:.2f} Jt Ha</b></p>
-        <p style="margin: 8px 0; color: #334155; font-size: 15px;">Opsi Singkong: <b>{opsi_singkong:.2f} Jt Ha</b></p>
-    </div>
-</div>
-"""
+# HTML CARDS (DIPADATKAN MENJADI 1 BARIS AGAR STREAMLIT TIDAK ERROR)
+html_cards = f"""<div style="background-color:#f8fafc;padding:25px;border-radius:12px;margin-bottom:20px;border:1px solid #e2e8f0;display:flex;gap:20px;flex-wrap:wrap;"><div style="flex:1;min-width:280px;background:white;padding:20px;border-radius:10px;border-top:4px solid #f59e0b;box-shadow:0 2px 4px rgba(0,0,0,0.05);"><h4 style="color:#b45309;margin-top:0;font-size:17px;">⛽ Neraca Pertalite Nasional</h4><p style="margin:8px 0;color:#334155;font-size:15px;">Total Konsumsi: <b>{vol_total_pertalite:.2f} Jt KL</b></p><p style="margin:8px 0;color:#334155;font-size:15px;">Import Awal: <b>{import_awal:.2f} Jt KL</b></p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:15px 0;"><p style="margin:8px 0;color:#16a34a;font-size:16px;">✅ Bensin Dihemat: <b>{vol_hemat_bensin:.2f} Jt KL</b></p><p style="margin:8px 0;color:#dc2626;font-size:16px;">⚠️ Sisa Import: <b>{sisa_import:.2f} Jt KL</b></p><p style="margin:20px 0 5px 0;color:#475569;font-size:15px;">Sisa Konsumsi: <b>{sisa_konsumsi:.2f} Jt KL</b></p></div><div style="flex:1;min-width:280px;background:white;padding:20px;border-radius:10px;border-top:4px solid #3b82f6;box-shadow:0 2px 4px rgba(0,0,0,0.05);"><h4 style="color:#1d4ed8;margin-top:0;font-size:17px;">💰 Dampak Ekonomi & Devisa</h4><p style="margin:8px 0;color:#334155;font-size:15px;">Hemat Kas Negara: <span style="color:#16a34a;">Rp {hemat_kas_negara:.2f} T</span></p><p style="margin:8px 0;color:#334155;font-size:15px;">Hemat Rakyat: <span style="color:#16a34a;">Rp {hemat_rakyat:.2f} T</span></p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:15px 0;"><p style="margin:8px 0;color:#334155;font-size:15px;">Efek Pengganda (K): <span style="color:#2563eb;">+Rp {efek_pengganda:.2f} T</span></p><p style="margin:2px 0;color:#64748b;font-size:13px;">(Menaikkan +{persen_pdb:.2f}% ke PDB Nominal)</p><p style="margin:20px 0 8px 0;color:#334155;font-size:17px;">🛡️ Devisa Aman: <span style="color:#16a34a;"><b>Rp {devisa_aman:.2f} T</b></span></p><div style="background-color:#fef3c7;border:1px solid #fde68a;padding:6px 12px;border-radius:6px;display:inline-block;font-size:13px;color:#92400e;">Setara menutup <b>{persen_defisit:.2f}%</b> Defisit 2026</div></div><div style="flex:1;min-width:280px;background:white;padding:20px;border-radius:10px;border-top:4px solid #10b981;box-shadow:0 2px 4px rgba(0,0,0,0.05);"><h4 style="color:#047857;margin-top:0;font-size:17px;">🌾 Kebutuhan Lahan E10</h4><p style="margin:8px 0;color:#64748b;font-size:13px;">(Untuk mem-backup 10% dari sisa konsumsi)</p><p style="margin:15px 0 8px 0;color:#334155;font-size:15px;">Kebutuhan Etanol: <b>{keb_etanol:.2f} Jt KL</b></p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:15px 0;"><p style="margin:8px 0;color:#334155;font-size:15px;">Opsi Tebu: <b>{opsi_tebu:.2f} Jt Ha</b></p><p style="margin:8px 0;color:#334155;font-size:15px;">Opsi Singkong: <b>{opsi_singkong:.2f} Jt Ha</b></p></div></div>"""
 st.markdown(html_cards, unsafe_allow_html=True)
 
 st.divider()
@@ -212,6 +180,7 @@ with col_i1:
 with col_i2:
     with st.container(border=True):
         st.subheader("Charging Mobil (SPKLU)")
+        mobil_ev = 4.46 * (target_ev / 100)
         rasio_spklu = st.number_input("Rasio Mobil : 1 SPKLU", value=15)
         kebutuhan_spklu = (mobil_ev * 1_000_000) / rasio_spklu
         investasi_spklu = (kebutuhan_spklu * 250) / 1_000_000 # Asumsi 250jt
