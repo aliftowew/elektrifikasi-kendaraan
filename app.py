@@ -6,6 +6,15 @@ import plotly.graph_objects as go
 # --- KONFIGURASI HALAMAN ---
 st.set_page_config(page_title="Dashboard Makroekonomi BBM", layout="wide")
 
+# CSS HACK: Sembunyikan angka di titik slider khusus untuk Range Slider agar tidak bingung
+st.markdown("""
+<style>
+    div[data-testid="stThumbValue"] {
+        display: none;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 st.title("📊 Analisis Kebijakan Substitusi Impor BBM & Elektrifikasi")
 
 # --- PENGATURAN GLOBAL (Di Sidebar) ---
@@ -269,9 +278,9 @@ with col_i3:
         kebutuhan_spklu = (mobil_ev * 1_000_000) / rasio_spklu
         
         with st.expander("⚙️ Atur Komposisi & Harga Mesin", expanded=False):
-            st.markdown("**Komposisi Charger (%) - Geser Titik**")
-            # Slider 2 titik (Range Slider)
-            batas = st.slider("Atur Batas Porsi", 0, 100, (55, 83), label_visibility="collapsed")
+            st.markdown("**Geser Titik Untuk Komposisi (%)**")
+            # Range Slider dengan 2 titik kontrol (Otomatis menghasilkan 3 porsi)
+            batas = st.slider("Komposisi SPKLU", 0, 100, (55, 83), label_visibility="collapsed")
             
             p_med = batas[0]
             p_fast = batas[1] - batas[0]
@@ -280,12 +289,12 @@ with col_i3:
             # Visualisasi Komposisi dengan Horizontal Stacked Bar Plotly (Batang 3 Warna)
             df_bar = pd.DataFrame({
                 "Tipe": ["Medium", "Fast", "Ultra Fast"],
-                "Porsi": [p_med, p_fast, p_ultra],
+                "Porsi (%)": [p_med, p_fast, p_ultra],
                 "Kategori": ["Komposisi SPKLU", "Komposisi SPKLU", "Komposisi SPKLU"]
             })
-            fig_bar = px.bar(df_bar, x="Porsi", y="Kategori", color="Tipe", orientation='h',
+            fig_bar = px.bar(df_bar, x="Porsi (%)", y="Kategori", color="Tipe", orientation='h',
                              color_discrete_map={"Medium": "#3b82f6", "Fast": "#f59e0b", "Ultra Fast": "#ef4444"},
-                             text="Porsi")
+                             text="Porsi (%)")
             fig_bar.update_traces(texttemplate='%{text}%', textposition='inside')
             fig_bar.update_layout(barmode='stack', height=100, margin=dict(l=0, r=0, t=0, b=0),
                                   xaxis=dict(visible=False), yaxis=dict(visible=False),
@@ -333,28 +342,43 @@ st.divider()
 # ==========================================
 # 5. POTENSI LOSS PAJAK DAERAH
 # ==========================================
-st.header("5️⃣ Potensi Loss Pajak Daerah")
+st.header("5️⃣ Potensi Loss Pajak Daerah (PBBKB & PKB)")
 with st.container(border=True):
-    st.markdown("Elektrifikasi menurunkan penerimaan Pajak Bahan Bakar Kendaraan Bermotor (PBBKB) dan Pajak Kendaraan Bermotor (PKB) daerah.")
+    st.markdown("Elektrifikasi menurunkan penerimaan Pajak Bahan Bakar Kendaraan Bermotor (PBBKB). Lebih buruk lagi, karena **EV saat ini bebas PKB (Pajak Kendaraan Bermotor) dan hanya membayar SWDKLLJ**, pemerintah daerah akan kehilangan 100% penerimaan pajak dari setiap kendaraan yang beralih ke listrik.")
     
-    tarif_pbbkb = st.slider("Tarif PBBKB (%)", 5, 10, 10)
+    col_t1, col_t2 = st.columns(2)
+    tarif_pbbkb = col_t1.slider("Tarif PBBKB Daerah (%)", 5, 10, 10)
+    
+    col_p1, col_p2 = st.columns(2)
+    pkb_mobil = col_p1.slider("Rata-rata PKB Mobil <1400cc (Juta Rp/Unit)", 1.85, 3.32, 2.50, step=0.01)
+    pkb_motor = col_p2.slider("Rata-rata PKB Motor (Juta Rp/Unit)", 0.10, 0.50, 0.25, step=0.01)
+    
+    # Kalkulasi Loss
     loss_pbbkb = (vol_hemat_bensin * 10000 * (tarif_pbbkb / 100)) / 1000
     
-    rata_rata_ev = (target_ev_motor + target_ev_mobil) / 200
-    loss_pkb = 43.86 * rata_rata_ev
+    loss_pkb_mobil = (4.46 * (target_ev_mobil / 100)) * pkb_mobil
+    loss_pkb_motor = (145.24 * (target_ev_motor / 100)) * pkb_motor
+    loss_pkb_total = loss_pkb_mobil + loss_pkb_motor
     
     c_p1, c_p2 = st.columns(2)
-    c_p1.error(f"""#### 📉 Loss PBBKB:
+    c_p1.error(f"""#### 📉 Potensi Loss PBBKB:
 #### Rp {loss_pbbkb:.2f} Triliun""")
     
-    c_p2.error(f"""#### 📉 Loss PKB & SWDKLLJ:
-#### Rp {loss_pkb:.2f} Triliun""")
+    c_p2.error(f"""#### 📉 Potensi Loss PKB:
+#### Rp {loss_pkb_total:.2f} Triliun""")
+
+    st.info("""
+    💡 **Saran Kebijakan:**
+    Mengingat potensi hilangnya Pendapatan Asli Daerah (PAD) yang sangat masif dari pembebasan PKB ini (mencapai puluhan triliun), pemerintah pusat dan daerah perlu segera merumuskan **Pajak Kendaraan Khusus Listrik**. Tarifnya harus tetap menarik bagi masyarakat di masa transisi, namun tidak membuat kas daerah 'berdarah'.
+    """)
 
 with st.expander("💡 Dari Mana Angka Loss Pajak Berasal?", expanded=True):
     st.markdown(f"""
     **Alur Simulasi Angka:**
     * **Loss Pajak Bahan Bakar (PBBKB):** Volume Pertalite yang dihemat ({vol_hemat_bensin:.2f} Juta kL) adalah bensin yang tidak lagi dibeli oleh masyarakat. 
         * Perhitungan: {vol_hemat_bensin:.2f} Juta kL × Harga Bensin (Rp 10.000/liter) × Tarif PBBKB Daerah ({tarif_pbbkb}%) = **Rp {loss_pbbkb:.2f} Triliun**.
-    * **Loss Pajak Kendaraan (PKB & SWDKLLJ):** Jika 100% populasi beralih ke EV, potensi kerugian maksimal mencapai Rp 43,86 Triliun. 
-        * Perhitungan Aktual: Menyesuaikan rata-rata adopsi EV (saat ini {rata_rata_ev * 100:.2f}%), maka Rp 43,86 Triliun × {rata_rata_ev * 100:.2f}% = **Rp {loss_pkb:.2f} Triliun**.
+    * **Loss Pajak Kendaraan Bermotor (PKB):** Karena mobil/motor listrik dibebaskan dari PKB, pemda kehilangan seluruh potensi pajak dari unit EV yang mengaspal.
+        * Loss dari Mobil EV: {mobil_ev:.2f} Juta Unit × Asumsi Rata-rata PKB (Rp {pkb_mobil} Juta) = **Rp {loss_pkb_mobil:.2f} Triliun**.
+        * Loss dari Motor EV: {total_motor_ev:.2f} Juta Unit × Asumsi Rata-rata PKB (Rp {pkb_motor} Juta) = **Rp {loss_pkb_motor:.2f} Triliun**.
+        * Total Loss PKB = **Rp {loss_pkb_total:.2f} Triliun**.
     """)
