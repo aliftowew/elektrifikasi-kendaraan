@@ -60,9 +60,9 @@ with st.container(border=True):
     hemat_bersih = hemat_kotor - beban_fame
     
     c1, c2, c3 = st.columns(3)
-    c1.warning(f"**Sisa Impor Solar:**\n### {vol_impor:.2f} Juta kL\n\n$I_{{baru}} = \max(0, V_k(1 - \%F) - V_{{lokal}})$")
-    c2.success(f"**Hemat Subsidi Kotor:**\n### Rp {hemat_kotor:.2f} T\n\n$H_{{kotor}} = \Delta I \times S$")
-    c3.error(f"**Biaya FAME:**\n### - Rp {beban_fame:.2f} T\n\n$B_{{fame}} = \Delta I \times G$")
+    c1.warning(f"**Sisa Impor Solar:**\n### {vol_impor:.2f} Juta kL\n\n$I_{{baru}} = \\max(0, V_k(1 - \\%F) - V_{{lokal}})$")
+    c2.success(f"**Hemat Subsidi Kotor:**\n### Rp {hemat_kotor:.2f} T\n\n$H_{{kotor}} = \\Delta I \\times S$")
+    c3.error(f"**Biaya FAME:**\n### - Rp {beban_fame:.2f} T\n\n$B_{{fame}} = \\Delta I \\times G$")
     
     st.success(f"#### 💰 Penghematan Bersih Negara: Rp {hemat_bersih:.2f} Triliun\n\n$H_{{bersih}} = H_{{kotor}} - B_{{fame}}$")
     
@@ -94,7 +94,7 @@ with st.container(border=True):
         hemat_bensin_rp = (vol_hemat_bensin * 1700) / 1000 # Triliun
         
         st.warning(f"**Volume Bensin Dihemat:**\n### {vol_hemat_bensin:.2f} Juta kL")
-        st.success(f"#### 💰 Potensi Hemat Subsidi Bensin: Rp {hemat_bensin_rp:.2f} Triliun\n\n$H_{{bensin}} = V_{{hemat}} \times \text{Rp } 1.700$")
+        st.success(f"#### 💰 Potensi Hemat Subsidi Bensin: Rp {hemat_bensin_rp:.2f} Triliun\n\n$H_{{bensin}} = V_{{hemat}} \\times \\text{{Rp }} 1.700$")
 
 st.divider()
 
@@ -118,7 +118,7 @@ with st.container(border=True):
         hemat_masyarakat = 139.2 * (target_ev / 100)
         pdb_naik = hemat_masyarakat * k_res
         st.warning(f"**Uang Hemat Masyarakat ($E$):**\n### Rp {hemat_masyarakat:.2f} Triliun")
-        st.success(f"#### 📈 Potensi Tambahan PDB:\n#### Rp {pdb_naik:.2f} Triliun\n\n$\Delta \text{PDB} = E \times k$")
+        st.success(f"#### 📈 Potensi Tambahan PDB:\n#### Rp {pdb_naik:.2f} Triliun\n\n$\\Delta \\text{{PDB}} = E \\times k$")
 
 st.divider()
 
@@ -161,7 +161,7 @@ with st.container(border=True):
     
     c_d1, c_d2 = st.columns(2)
     c_d1.warning(f"**Total Impor Dicegah:**\n### {tot_barel:.2f} Juta Barel")
-    c_d2.success(f"#### 💱 Devisa Terselamatkan:\n#### Rp {hemat_rp_devisa:.2f} Triliun\n\n$\text{Devisa} = \text{Barel} \times \text{Harga Minyak} \times \text{Kurs}$")
+    c_d2.success(f"#### 💱 Devisa Terselamatkan:\n#### Rp {hemat_rp_devisa:.2f} Triliun\n\n$\\text{{Devisa}} = \\text{{Barel}} \\times \\text{{Harga Minyak}} \\times \\text{{Kurs}}$")
 
 st.divider()
 
@@ -177,7 +177,7 @@ with col_i1:
         porsi_swap = st.slider("Pengguna Swap (%)", 0, 100, 40)
         estimasi_baterai = (182.21 + (258.04 - 182.21) * (porsi_swap/100)) * (target_ev/100)
         
-        st.warning(f"**Kebutuhan Pack Baterai:**\n### {estimasi_baterai:.2f} Juta Unit\n\n$B_{{pool}} = D \times \frac{{d}}{{H}} \times 1.2$")
+        st.warning(f"**Kebutuhan Pack Baterai:**\n### {estimasi_baterai:.2f} Juta Unit\n\n$B_{{pool}} = D \\times \\frac{{d}}{{H}} \\times 1.2$")
 
 with col_i2:
     with st.container(border=True):
@@ -203,5 +203,5 @@ with st.container(border=True):
     loss_pkb = 43.86 * (target_ev / 100)
     
     c_p1, c_p2 = st.columns(2)
-    c_p1.error(f"#### 📉 Loss PBBKB:\n#### Rp {loss_pbbkb:.2f} Triliun\n\n$L_{{PBBKB}} = V \times P \times t$")
+    c_p1.error(f"#### 📉 Loss PBBKB:\n#### Rp {loss_pbbkb:.2f} Triliun\n\n$L_{{PBBKB}} = V \\times P \\times t$")
     c_p2.error(f"#### 📉 Loss PKB & SWDKLLJ:\n#### Rp {loss_pkb:.2f} Triliun")
