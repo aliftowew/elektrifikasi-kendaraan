@@ -8,16 +8,16 @@ st.set_page_config(page_title="Dashboard Makroekonomi BBM", layout="wide")
 
 st.title("📊 Analisis Kebijakan Substitusi Impor BBM & Elektrifikasi")
 
-# --- PENGATURAN GLOBAL (Di Main Page) ---
-with st.container(border=True):
-    st.subheader("⚙️ Pengaturan Parameter Global")
-    col_g1, col_g2, col_g3 = st.columns(3)
-    with col_g1:
-        target_ev = st.slider("Target Elektrifikasi Motor & Mobil (%)", 0, 100, 25, step=5)
-    with col_g2:
-        harga_minyak = st.slider("Harga Minyak Dunia ($/bbl)", 50, 150, 90, step=5)
-    with col_g3:
-        kurs_rp = st.slider("Kurs Rupiah (Rp/USD)", 14000, 18000, 16896, step=100)
+# --- PENGATURAN GLOBAL (Di Sidebar / Melayang) ---
+with st.sidebar:
+    st.header("⚙️ Parameter Global")
+    st.markdown("Atur variabel simulasi di sini:")
+    target_ev_motor = st.slider("Target EV Motor (%)", 0, 100, 25, step=5)
+    target_ev_mobil = st.slider("Target EV Mobil <1400cc (%)", 0, 100, 25, step=5)
+    target_fame = st.slider("Komposisi FAME (Biosolar) (%)", 30, 80, 50, step=5)
+    st.divider()
+    harga_minyak = st.slider("Harga Minyak Dunia ($/bbl)", 50, 150, 90, step=5)
+    kurs_rp = st.slider("Kurs Rupiah (Rp/USD)", 14000, 18000, 16896, step=100)
 
 st.divider()
 
@@ -36,16 +36,12 @@ with st.container(border=True):
         "Tahun": [2020, 2021, 2022, 2023, 2024, 2025, 2026],
         "Konsumsi (Juta kL)": [33.5, 33.4, 36.2, 37.8, 39.2, 39.5, 39.84]
     })
-    fig_solar = px.line(df_solar_hist, x="Tahun", y="Konsumsi (Juta kL)", markers=True, 
-                        title="Historis & Proyeksi Konsumsi Solar Nasional ($y = 32.41 + 3.82 \ln(x)$)")
+    fig_solar = px.line(df_solar_hist, x="Tahun", y="Konsumsi (Juta kL)", markers=True, title="Historis & Proyeksi Konsumsi Solar Nasional")
     fig_solar.add_vline(x=2025, line_dash="dash", line_color="red", annotation_text="Proyeksi 2026 ->")
     fig_solar.update_traces(line_color="#e63946", marker=dict(size=10))
     st.plotly_chart(fig_solar, use_container_width=True, config={'staticPlot': True})
     
-    st.markdown("### 🎛️ Simulasi Komposisi FAME (Biosolar)")
-    target_fame = st.slider("Komposisi FAME (%)", min_value=30, max_value=80, value=50, step=5)
-    
-    # Kalkulasi Dinamis
+    # Kalkulasi Dinamis Solar
     konsumsi_2026 = 39.84
     produksi_fosil_lokal = 20.1
     impor_baseline = 4.9
@@ -59,23 +55,21 @@ with st.container(border=True):
     beban_fame = (impor_dihemat * 3000) / 1000 # Triliun
     hemat_bersih = hemat_kotor - beban_fame
     
-    c1, c2, c3 = st.columns(3)
-    c1.warning(f"**Sisa Impor Solar:**\n### {vol_impor:.2f} Juta kL\n\n$I_{{baru}} = \max(0, V_k(1 - \%F) - V_{{lokal}})$")
-    c2.success(f"**Hemat Subsidi Kotor:**\n### Rp {hemat_kotor:.2f} T\n\n$H_{{kotor}} = \Delta I \\times S$")
-    c3.error(f"**Biaya FAME:**\n### - Rp {beban_fame:.2f} T\n\n$B_{{fame}} = \Delta I \\times G$")
-    
-    st.success(f"#### 💰 Penghematan Bersih Negara: Rp {hemat_bersih:.2f} Triliun\n\n$H_{{bersih}} = H_{{kotor}} - B_{{fame}}$")
-    
-    st.info("""
-    **Keterangan Simbol:**
-    * $V_k$: Proyeksi konsumsi solar (39,84 Jt kL)
-    * $V_{lokal}$: Kapasitas kilang lokal (20,1 Jt kL)
-    * $\%F$: Persentase campuran FAME
-    * $\Delta I$: Volume impor yang berhasil dihemat ($\max(0, I_{base} - I_{baru})$)
-    * $I_{base}$: Baseline impor eksisting (4,9 Jt kL)
-    * $S$: Subsidi solar per liter (Rp 5.150)
-    * $G$: Gap harga keekonomian FAME vs Fosil (Rp 3.000)
-    """)
+    # HTML CARDS UNTUK SOLAR (Minified)
+    html_cards_1a = f"""<div style="background-color:#f8fafc;padding:25px;border-radius:12px;margin-bottom:20px;border:1px solid #e2e8f0;display:flex;gap:20px;flex-wrap:wrap;"><div style="flex:1;min-width:280px;background:white;padding:20px;border-radius:10px;border-top:4px solid #f59e0b;box-shadow:0 2px 4px rgba(0,0,0,0.05);"><h4 style="color:#b45309;margin-top:0;font-size:17px;">🛢️ Neraca Pasokan Solar 2026</h4><p style="margin:8px 0;color:#334155;font-size:15px;">Proyeksi Konsumsi: <b>{konsumsi_2026:.2f} Jt KL</b></p><p style="margin:8px 0;color:#334155;font-size:15px;">Kebutuhan FAME ({target_fame}%): <b>{vol_fame:.2f} Jt KL</b></p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:15px 0;"><p style="margin:8px 0;color:#16a34a;font-size:16px;">✅ Fosil Tersedia: <b>{produksi_fosil_lokal:.2f} Jt KL</b></p><p style="margin:8px 0;color:#dc2626;font-size:16px;">⚠️ Sisa Impor Solar: <b>{vol_impor:.2f} Jt KL</b></p></div><div style="flex:1;min-width:280px;background:white;padding:20px;border-radius:10px;border-top:4px solid #3b82f6;box-shadow:0 2px 4px rgba(0,0,0,0.05);"><h4 style="color:#1d4ed8;margin-top:0;font-size:17px;">💰 Dampak Keuangan Negara</h4><p style="margin:8px 0;color:#334155;font-size:15px;">Hemat Subsidi Impor: <span style="color:#16a34a;">Rp {hemat_kotor:.2f} T</span></p><p style="margin:8px 0;color:#334155;font-size:15px;">Biaya Selisih FAME: <span style="color:#dc2626;">- Rp {beban_fame:.2f} T</span></p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:15px 0;"><p style="margin:20px 0 8px 0;color:#334155;font-size:17px;">🛡️ Penghematan Bersih: <span style="color:#16a34a;"><b>Rp {hemat_bersih:.2f} T</b></span></p></div></div>"""
+    st.markdown(html_cards_1a, unsafe_allow_html=True)
+
+    # DROPDOWN RUMUS SOLAR
+    with st.expander("💡 Buka Penjelasan & Rumus Perhitungan Solar (B50)"):
+        st.markdown("""
+        **Dari mana angka ini berasal?**
+        - **Proyeksi Konsumsi (39,84 Jt kL):** Didapat dari rumus tren regresi logaritmik tahun 2020-2025.
+        - **Kapasitas Fosil (20,1 Jt kL):** Kapasitas kilang eksisting ditambah *upgrade* kilang RDMP Balikpapan (1,8 Jt kL).
+        - **Sisa Impor:** Konsumsi dikurangi FAME, lalu dicocokkan dengan kapasitas kilang. Jika kilang masih kurang, maka harus impor.
+        - **Penghematan Bersih:** Negara tidak perlu impor 4,9 Jt kL solar (hemat Rp 5.150/liter), tapi BPDPKS harus nombok selisih harga Biosolar vs Fosil sebesar Rp 3.000/liter.
+        """)
+        st.latex(r"I_{baru} = \max(0, V_k(1 - \%F) - V_{lokal})")
+        st.latex(r"H_{bersih} = (\Delta I \times \text{Rp } 5.150) - (\Delta I \times \text{Rp } 3.000)")
 
 # --- Sub-Poin Bensin ---
 st.subheader("b. Substitusi Impor Bensin (Pertalite)")
@@ -87,36 +81,48 @@ with col_b1:
     st.plotly_chart(fig_pie, use_container_width=True, config={'staticPlot': True})
 
 with col_b2:
-    # Kalkulasi Dinamis Bensin
+    # Kalkulasi Dinamis Bensin (Berdasarkan Slider Split)
     vol_total_pertalite = 29.00
     import_awal = 14.92
-    vol_target_bensin = 17.40
-    vol_hemat_bensin = vol_target_bensin * (target_ev / 100)
+    
+    vol_motor_hemat = 8.3 * (target_ev_motor / 100)
+    vol_mobil_hemat = 9.1 * (target_ev_mobil / 100)
+    vol_hemat_bensin = vol_motor_hemat + vol_mobil_hemat
+    
     sisa_import = max(0, import_awal - vol_hemat_bensin)
     sisa_konsumsi = vol_total_pertalite - vol_hemat_bensin
 
     # Ekonomi
     hemat_kas_negara = (vol_hemat_bensin * 1700) / 1000
-    hemat_rakyat = (vol_hemat_bensin * 10000 * 0.75) / 1000 # EV ~75% lebih hemat
+    hemat_rakyat = (vol_hemat_bensin * 10000 * 0.75) / 1000 
     k_multiplier = 1.934
     efek_pengganda = hemat_rakyat * k_multiplier
     pdb_nominal = 23821.10
     persen_pdb = (efek_pengganda / pdb_nominal) * 100
 
-    # Devisa
-    barel_bensin = vol_hemat_bensin * 6.2898 # Konversi kL ke Barel
+    # Devisa & Lahan
+    barel_bensin = vol_hemat_bensin * 6.2898
     devisa_aman = (barel_bensin * harga_minyak * kurs_rp) / 1_000_000
     defisit_2026 = 689.10
     persen_defisit = (devisa_aman / defisit_2026) * 100
-
-    # Lahan
     keb_etanol = sisa_konsumsi * 0.10
     opsi_tebu = keb_etanol / 4.9
     opsi_singkong = keb_etanol / 4.07
 
-# HTML CARDS (DIPADATKAN MENJADI 1 BARIS AGAR STREAMLIT TIDAK ERROR)
-html_cards = f"""<div style="background-color:#f8fafc;padding:25px;border-radius:12px;margin-bottom:20px;border:1px solid #e2e8f0;display:flex;gap:20px;flex-wrap:wrap;"><div style="flex:1;min-width:280px;background:white;padding:20px;border-radius:10px;border-top:4px solid #f59e0b;box-shadow:0 2px 4px rgba(0,0,0,0.05);"><h4 style="color:#b45309;margin-top:0;font-size:17px;">⛽ Neraca Pertalite Nasional</h4><p style="margin:8px 0;color:#334155;font-size:15px;">Total Konsumsi: <b>{vol_total_pertalite:.2f} Jt KL</b></p><p style="margin:8px 0;color:#334155;font-size:15px;">Import Awal: <b>{import_awal:.2f} Jt KL</b></p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:15px 0;"><p style="margin:8px 0;color:#16a34a;font-size:16px;">✅ Bensin Dihemat: <b>{vol_hemat_bensin:.2f} Jt KL</b></p><p style="margin:8px 0;color:#dc2626;font-size:16px;">⚠️ Sisa Import: <b>{sisa_import:.2f} Jt KL</b></p><p style="margin:20px 0 5px 0;color:#475569;font-size:15px;">Sisa Konsumsi: <b>{sisa_konsumsi:.2f} Jt KL</b></p></div><div style="flex:1;min-width:280px;background:white;padding:20px;border-radius:10px;border-top:4px solid #3b82f6;box-shadow:0 2px 4px rgba(0,0,0,0.05);"><h4 style="color:#1d4ed8;margin-top:0;font-size:17px;">💰 Dampak Ekonomi & Devisa</h4><p style="margin:8px 0;color:#334155;font-size:15px;">Hemat Kas Negara: <span style="color:#16a34a;">Rp {hemat_kas_negara:.2f} T</span></p><p style="margin:8px 0;color:#334155;font-size:15px;">Hemat Rakyat: <span style="color:#16a34a;">Rp {hemat_rakyat:.2f} T</span></p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:15px 0;"><p style="margin:8px 0;color:#334155;font-size:15px;">Efek Pengganda (K): <span style="color:#2563eb;">+Rp {efek_pengganda:.2f} T</span></p><p style="margin:2px 0;color:#64748b;font-size:13px;">(Menaikkan +{persen_pdb:.2f}% ke PDB Nominal)</p><p style="margin:20px 0 8px 0;color:#334155;font-size:17px;">🛡️ Devisa Aman: <span style="color:#16a34a;"><b>Rp {devisa_aman:.2f} T</b></span></p><div style="background-color:#fef3c7;border:1px solid #fde68a;padding:6px 12px;border-radius:6px;display:inline-block;font-size:13px;color:#92400e;">Setara menutup <b>{persen_defisit:.2f}%</b> Defisit 2026</div></div><div style="flex:1;min-width:280px;background:white;padding:20px;border-radius:10px;border-top:4px solid #10b981;box-shadow:0 2px 4px rgba(0,0,0,0.05);"><h4 style="color:#047857;margin-top:0;font-size:17px;">🌾 Kebutuhan Lahan E10</h4><p style="margin:8px 0;color:#64748b;font-size:13px;">(Untuk mem-backup 10% dari sisa konsumsi)</p><p style="margin:15px 0 8px 0;color:#334155;font-size:15px;">Kebutuhan Etanol: <b>{keb_etanol:.2f} Jt KL</b></p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:15px 0;"><p style="margin:8px 0;color:#334155;font-size:15px;">Opsi Tebu: <b>{opsi_tebu:.2f} Jt Ha</b></p><p style="margin:8px 0;color:#334155;font-size:15px;">Opsi Singkong: <b>{opsi_singkong:.2f} Jt Ha</b></p></div></div>"""
-st.markdown(html_cards, unsafe_allow_html=True)
+# HTML CARDS UNTUK BENSIN (Minified)
+html_cards_1b = f"""<div style="background-color:#f8fafc;padding:25px;border-radius:12px;margin-bottom:20px;border:1px solid #e2e8f0;display:flex;gap:20px;flex-wrap:wrap;"><div style="flex:1;min-width:280px;background:white;padding:20px;border-radius:10px;border-top:4px solid #f59e0b;box-shadow:0 2px 4px rgba(0,0,0,0.05);"><h4 style="color:#b45309;margin-top:0;font-size:17px;">⛽ Neraca Pertalite Nasional</h4><p style="margin:8px 0;color:#334155;font-size:15px;">Total Konsumsi: <b>{vol_total_pertalite:.2f} Jt KL</b></p><p style="margin:8px 0;color:#334155;font-size:15px;">Import Awal: <b>{import_awal:.2f} Jt KL</b></p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:15px 0;"><p style="margin:8px 0;color:#16a34a;font-size:16px;">✅ Bensin Dihemat: <b>{vol_hemat_bensin:.2f} Jt KL</b></p><p style="margin:8px 0;color:#dc2626;font-size:16px;">⚠️ Sisa Import: <b>{sisa_import:.2f} Jt KL</b></p><p style="margin:20px 0 5px 0;color:#475569;font-size:15px;">Sisa Konsumsi: <b>{sisa_konsumsi:.2f} Jt KL</b></p></div><div style="flex:1;min-width:280px;background:white;padding:20px;border-radius:10px;border-top:4px solid #3b82f6;box-shadow:0 2px 4px rgba(0,0,0,0.05);"><h4 style="color:#1d4ed8;margin-top:0;font-size:17px;">💰 Dampak Ekonomi & Devisa</h4><p style="margin:8px 0;color:#334155;font-size:15px;">Hemat Kas Negara: <span style="color:#16a34a;">Rp {hemat_kas_negara:.2f} T</span></p><p style="margin:8px 0;color:#334155;font-size:15px;">Hemat Rakyat: <span style="color:#16a34a;">Rp {hemat_rakyat:.2f} T</span></p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:15px 0;"><p style="margin:8px 0;color:#334155;font-size:15px;">Efek Pengganda (K): <span style="color:#2563eb;">+Rp {efek_pengganda:.2f} T</span></p><p style="margin:2px 0;color:#64748b;font-size:13px;">(Menaikkan +{persen_pdb:.2f}% ke PDB Nominal)</p><p style="margin:20px 0 8px 0;color:#334155;font-size:17px;">🛡️ Devisa Aman: <span style="color:#16a34a;"><b>Rp {devisa_aman:.2f} T</b></span></p><div style="background-color:#fef3c7;border:1px solid #fde68a;padding:6px 12px;border-radius:6px;display:inline-block;font-size:13px;color:#92400e;">Setara menutup <b>{persen_defisit:.2f}%</b> Defisit 2026</div></div><div style="flex:1;min-width:280px;background:white;padding:20px;border-radius:10px;border-top:4px solid #10b981;box-shadow:0 2px 4px rgba(0,0,0,0.05);"><h4 style="color:#047857;margin-top:0;font-size:17px;">🌾 Kebutuhan Lahan E10</h4><p style="margin:8px 0;color:#64748b;font-size:13px;">(Untuk mem-backup 10% dari sisa konsumsi)</p><p style="margin:15px 0 8px 0;color:#334155;font-size:15px;">Kebutuhan Etanol: <b>{keb_etanol:.2f} Jt KL</b></p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:15px 0;"><p style="margin:8px 0;color:#334155;font-size:15px;">Opsi Tebu: <b>{opsi_tebu:.2f} Jt Ha</b></p><p style="margin:8px 0;color:#334155;font-size:15px;">Opsi Singkong: <b>{opsi_singkong:.2f} Jt Ha</b></p></div></div>"""
+st.markdown(html_cards_1b, unsafe_allow_html=True)
+
+# DROPDOWN RUMUS BENSIN
+with st.expander("💡 Buka Penjelasan & Rumus Perhitungan Pertalite"):
+    st.markdown("""
+    **Dari mana angka ini berasal?**
+    - **Bensin Dihemat:** Berasal dari total target elektrifikasi motor ($8,3$ Jt kL $\\times$ persen EV) ditambah target mobil ($9,1$ Jt kL $\\times$ persen EV).
+    - **Hemat Kas Negara:** Volume bensin yang dihemat dikalikan nilai subsidi Pertalite (Rp 1.700/liter).
+    - **Hemat Rakyat:** Biaya *charging* listrik untuk EV sekitar 70-80% lebih murah (atau $\\approx 5 \\times$ lebih hemat) dibanding membeli bensin Rp 10.000/liter.
+    - **Efek Pengganda (K):** Uang sisa bensin yang dihemat warga dibelanjakan ke sektor lain, mendorong PDB. Dikalikan dengan nilai konstanta Keynesian $k = 1.934$.
+    - **Lahan E10:** Sisa bensin yang gagal dielektrifikasi akan ditutup 10% nya menggunakan Etanol nabati (membutuhkan konversi yield tebu/singkong per hektare).
+    """)
 
 st.divider()
 
@@ -124,14 +130,13 @@ st.divider()
 # 2. PENGHEMATAN MASYARAKAT & PDB
 # ==========================================
 st.header("2️⃣ Penjelasan Multiplier Effect")
-with st.container(border=True):
-    st.markdown("Berikut adalah detail formulasi dari Efek Pengganda (K) yang ditampilkan pada metrik di atas:")
+with st.expander("💡 Lihat Detail Perhitungan Multiplier (PDB)", expanded=True):
+    st.markdown("Detail formulasi dari **Efek Pengganda (K)** yang ditampilkan pada metrik di atas:")
     c_m1, c_m2 = st.columns(2)
     with c_m1:
-        st.info("💡 **Kalkulator Multiplier ($k$):**")
-        c_val = st.number_input("MPC ($c$)", value=0.779)
-        t_val = st.number_input("Tax Rate ($t$)", value=0.118)
-        m_val = st.number_input("Import Prop. ($m$)", value=0.209)
+        c_val = st.number_input("MPC (c)", value=0.779)
+        t_val = st.number_input("Tax Rate (t)", value=0.118)
+        m_val = st.number_input("Import Prop. (m)", value=0.209)
         k_res = 1 / (1 - c_val * (1 - t_val) + m_val)
         st.latex(r"k = \frac{1}{1 - c(1 - t) + m}")
     with c_m2:
@@ -174,13 +179,15 @@ with col_i1:
     with st.container(border=True):
         st.subheader("Swap Baterai Motor (SPBKLU)")
         porsi_swap = st.slider("Pengguna Swap (%)", 0, 100, 40)
-        estimasi_baterai = (182.21 + (258.04 - 182.21) * (porsi_swap/100)) * (target_ev/100)
+        # Kalkulasi infrastruktur khusus menggunakan target_ev_motor
+        estimasi_baterai = (182.21 + (258.04 - 182.21) * (porsi_swap/100)) * (target_ev_motor/100)
         st.warning(f"**Kebutuhan Pack Baterai:**\n### {estimasi_baterai:.2f} Juta Unit\n\n$B_{{pool}} = D \\times \frac{{d}}{{H}} \\times 1.2$")
 
 with col_i2:
     with st.container(border=True):
         st.subheader("Charging Mobil (SPKLU)")
-        mobil_ev = 4.46 * (target_ev / 100)
+        # Kalkulasi infrastruktur khusus menggunakan target_ev_mobil
+        mobil_ev = 4.46 * (target_ev_mobil / 100)
         rasio_spklu = st.number_input("Rasio Mobil : 1 SPKLU", value=15)
         kebutuhan_spklu = (mobil_ev * 1_000_000) / rasio_spklu
         investasi_spklu = (kebutuhan_spklu * 250) / 1_000_000 # Asumsi 250jt
@@ -196,7 +203,10 @@ with st.container(border=True):
     st.markdown("Elektrifikasi menurunkan penerimaan Pajak Bahan Bakar (PBBKB) dan Pajak Kendaraan (PKB) daerah.")
     tarif_pbbkb = st.slider("Tarif PBBKB (%)", 5, 10, 10)
     loss_pbbkb = (vol_hemat_bensin * 10000 * (tarif_pbbkb / 100)) / 1000
-    loss_pkb = 43.86 * (target_ev / 100)
+    
+    # Loss PKB dihitung proporsional dari gabungan ev motor dan mobil
+    rata_rata_ev = (target_ev_motor + target_ev_mobil) / 200
+    loss_pkb = 43.86 * rata_rata_ev
     
     c_p1, c_p2 = st.columns(2)
     c_p1.error(f"#### 📉 Loss PBBKB:\n#### Rp {loss_pbbkb:.2f} Triliun\n\n$L_{{PBBKB}} = V \\times P \\times t$")
