@@ -184,9 +184,10 @@ with st.container(border=True):
         st.markdown(f"""
         **Alur Simulasi Angka:**
         * **Konversi ke Satuan Barel:** Di pasar global, minyak dihitung dalam Barel. Konstanta konversinya adalah 1 kL setara 6,2898 Barel.
-            * Total Solar dan Bensin yang tidak jadi diimpor dikalikan konstanta tersebut, menghasilkan **{tot_barel:.2f} Juta Barel** minyak yang tidak perlu kita beli dari luar negeri.
-        * **Perhitungan Devisa Negara:** {tot_barel:.2f} Juta Barel dikalikan dengan Harga Minyak (USD {harga_minyak}/barel) dan Kurs (Rp {kurs_rp}/USD). Hasilnya adalah nilai Rupiah yang berhasil ditahan di dalam negeri (**Rp {hemat_rp_devisa:.2f} Triliun**).
-        * **Rasio terhadap Defisit:** Uang devisa yang diselamatkan ini dibandingkan dengan proyeksi defisit APBN pemerintah, membuktikan bahwa kebijakan ini bisa menambal celah utang negara secara signifikan.
+            * **Total Barel Dicegah:** (Impor Solar {impor_dihemat_solar:.2f} Jt kL + Impor Bensin {vol_hemat_bensin:.2f} Jt kL) × 6,2898 = **{tot_barel:.2f} Juta Barel**.
+        * **Perhitungan Devisa Negara:** {tot_barel:.2f} Juta Barel × Harga Minyak (USD {harga_minyak}/barel) × Kurs (Rp {kurs_rp}/USD) = **Rp {hemat_rp_devisa:.2f} Triliun**.
+        * **Rasio terhadap Defisit:** Rp {hemat_rp_devisa:.2f} T ÷ Target Defisit APBN (Rp 689,1 T) = **{persen_defisit_tot:.2f}%**.
+        * **Rasio terhadap PDB Nominal:** Rp {hemat_rp_devisa:.2f} T ÷ PDB 2025 (Rp 23.821,1 T) = **{persen_pdb_tot:.2f}%**.
         """)
 
 st.divider()
@@ -216,7 +217,8 @@ with st.container(border=True):
     with st.expander("💡 Dari Mana Angka Skenario Listrik Berasal?", expanded=True):
         st.markdown(f"""
         **Alur Simulasi Angka:**
-        * **Kebutuhan Listrik Tambahan:** Berasal dari total bensin yang dihemat ({vol_hemat_bensin:.2f} Juta kL atau Miliar Liter) dikalikan dengan faktor konversi 1,2 kWh per liter. Hasilnya adalah beban tambahan **{kebutuhan_twh:.2f} TWh** per tahun.
+        * **Kebutuhan Listrik Tambahan:** Berasal dari total bensin yang dihemat ({vol_hemat_bensin:.2f} Juta kL atau Miliar Liter) dikalikan dengan faktor konversi **1,2 kWh per liter**. 
+        * **Perhitungan Beban:** {vol_hemat_bensin:.2f} Juta kL × 1,2 = **{kebutuhan_twh:.2f} TWh** per tahun.
         * **Surplus Listrik Nasional (Kapasitas Menganggur):** Berdasarkan data PLN, kapasitas produksi listrik nasional adalah 354 TWh, sementara yang terpakai hanya 317,69 TWh. 
         * **Kesimpulan:** Selisihnya menciptakan cadangan tenaga sebesar 354 − 317,69 = **36,31 TWh**, yang jauh lebih besar dari beban baru kendaraan listrik. Tidak perlu membangun pembangkit listrik baru secara mendadak.
         """)
@@ -388,3 +390,15 @@ with st.expander("💡 Dari Mana Angka Loss Pajak Berasal?", expanded=True):
         * Loss dari Motor EV: {total_motor_ev:.2f} Juta Unit × Asumsi Rata-rata PKB (Rp {pkb_motor:.2f} Juta) = **Rp {loss_pkb_motor:.2f} Triliun**.
         * Total Loss PKB = **Rp {loss_pkb_total:.2f} Triliun**.
     """)
+
+st.divider()
+
+# ==========================================
+# FOOTER TAGLINE
+# ==========================================
+st.markdown("""
+<div style='text-align: center; color: gray; padding: 20px;'>
+    <h4>💡Semua Bisa Dihitung</h4>
+    <p>by Alif Towew</p>
+</div>
+""", unsafe_allow_html=True)
