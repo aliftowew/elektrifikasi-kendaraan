@@ -69,9 +69,9 @@ with st.container(border=True):
     st.info("""
     **Keterangan Simbol:**
     * $V_k$: Proyeksi konsumsi solar (39,84 Jt kL)
-    * $V_{lokal}$: Kapasitas kilang lokal (20,1 Jt kL)
+    * $V_{lokal}$: Kapasitas kilang lokal eksisting + RDMP (20,1 Jt kL)
     * $\%F$: Persentase campuran FAME
-    * $\Delta I$: Volume impor yang berhasil dihemat ($\max(0, I_{base} - I_{baru})$)
+    * $\Delta I$: Volume impor yang berhasil dihemat ($\\max(0, I_{base} - I_{baru})$)
     * $I_{base}$: Baseline impor eksisting (4,9 Jt kL)
     * $S$: Subsidi solar per liter (Rp 5.150)
     * $G$: Gap harga keekonomian FAME vs Fosil (Rp 3.000)
@@ -79,22 +79,48 @@ with st.container(border=True):
 
 # --- Sub-Poin Bensin ---
 with st.container(border=True):
-    st.subheader("b. Substitusi Impor Bensin (Pertalite)")
-    st.markdown("Konsumsi Pertalite mencapai 29 juta kL. Fokus elektrifikasi adalah Motor dan Mobil <1400cc.")
+    st.subheader("b. Substitusi Impor Bensin (Pertalite) & Skenario E10")
+    st.markdown("Konsumsi Pertalite mencapai **29 Juta kL**. Target elektrifikasi difokuskan pada segmen konsumsi terbesar: **Motor (28,6%)** dan **Mobil <1400cc (31,4%)**.")
     
-    col_b1, col_b2 = st.columns([1, 2])
+    col_b1, col_b2 = st.columns([1, 1.5])
     with col_b1:
-        df_bensin = pd.DataFrame({"Kategori": ["Motor", "Mobil <1400cc", "Lainnya"], "Porsi (%)": [28.6, 31.4, 40.0]})
+        df_bensin = pd.DataFrame({"Kategori": ["Motor", "Mobil <1400cc", "Lainnya (>1400cc)"], "Porsi (%)": [28.6, 31.4, 40.0]})
         fig_pie = px.pie(df_bensin, values='Porsi (%)', names='Kategori', hole=0.4, title="Profil Pengguna Pertalite")
         st.plotly_chart(fig_pie, use_container_width=True, config={'staticPlot': True})
     
     with col_b2:
-        vol_target_bensin = 17.4 # 8.3 + 9.1
-        vol_hemat_bensin = vol_target_bensin * (target_ev / 100)
-        hemat_bensin_rp = (vol_hemat_bensin * 1700) / 1000 # Triliun
+        st.markdown("### 🎛️ Simulasi Penghematan & Sisa Impor")
+        subsidi_bensin = st.number_input("Subsidi Pertalite (Rp/Liter)", value=1700, step=100)
         
-        st.warning(f"**Volume Bensin Dihemat:**\n### {vol_hemat_bensin:.2f} Juta kL")
-        st.success(f"#### 💰 Potensi Hemat Subsidi Bensin: Rp {hemat_bensin_rp:.2f} Triliun\n\n$H_{{bensin}} = V_{{hemat}} \\times \\text{{Rp }} 1.700$")
+        # Kalkulasi Dinamis Bensin
+        vol_total_pertalite = 29.0
+        vol_target_bensin = 17.4 # 8.3 (Motor) + 9.1 (Mobil <1400cc)
+        vol_hemat_bensin = vol_target_bensin * (target_ev / 100)
+        hemat_bensin_rp = (vol_hemat_bensin * subsidi_bensin) / 1000 # Triliun
+        
+        sisa_konsumsi = vol_total_pertalite - vol_hemat_bensin
+        kebutuhan_etanol = sisa_konsumsi * 0.10
+        rdmp_bensin = 5.8
+        sisa_impor_bensin = max(0, sisa_konsumsi - kebutuhan_etanol - rdmp_bensin)
+        
+        c4, c5 = st.columns(2)
+        c4.warning(f"**Volume Dihemat ($V_{{hemat}}$):**\n### {vol_hemat_bensin:.2f} Juta kL\n\n$V_{{hemat}} = V_{{target}} \\times \\%EV$")
+        c5.success(f"**Hemat Subsidi ($H_{{bensin}}$):**\n### Rp {hemat_bensin_rp:.2f} T\n\n$H_{{bensin}} = V_{{hemat}} \\times S_b$")
+        
+        st.divider()
+        
+        c6, c7 = st.columns(2)
+        c6.info(f"**Kebutuhan Etanol E10 ($E_{{10}}$):**\n### {kebutuhan_etanol:.2f} Juta kL\n\n$E_{{10}} = V_{{sisa}} \\times 10\\%$")
+        c7.error(f"**Sisa Impor Bensin ($I_b$):**\n### {sisa_impor_bensin:.2f} Juta kL\n\n$I_b = \\max(0, V_{{sisa}} - E_{{10}} - V_{{RDMP}})$")
+        
+    st.info("""
+    **Keterangan Simbol:**
+    * $V_{target}$: Total konsumsi motor & mobil <1400cc (17,4 Jt kL)
+    * $\%EV$: Target elektrifikasi (diatur pada slider global di atas)
+    * $S_b$: Subsidi Pertalite per liter (Rp 1.700)
+    * $V_{sisa}$: Sisa konsumsi Pertalite nasional ($29 - V_{hemat}$)
+    * $V_{RDMP}$: Tambahan produksi bensin dari kilang RDMP (5,8 Jt kL)
+    """)
 
 st.divider()
 
@@ -139,7 +165,7 @@ with st.container(border=True):
         ))
         st.plotly_chart(fig_gauge, use_container_width=True, config={'staticPlot': True})
     with col_l2:
-        st.info("💡 **Konversi Energi:**\n$1 \text{ Liter BBM} = 1,2 \text{ kWh}$")
+        st.info("💡 **Konversi Energi:**\n$1 \\text{{ Liter BBM}} = 1,2 \\text{{ kWh}}$")
         if kebutuhan_twh <= surplus_twh:
             st.success(f"**Aman!** Beban {kebutuhan_twh:.2f} TWh di bawah surplus PLN ({surplus_twh} TWh).")
         else:
