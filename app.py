@@ -31,15 +31,15 @@ with st.container(border=True):
     st.subheader("a. Substitusi Impor Solar & Dinamika FAME")
     st.markdown("Berdasarkan regresi logaritmik, **konsumsi solar 2026 diprediksi sebesar 39,84 Juta kL**.")
     
-    # Grafik Historis (Fixed Categorical X-Axis)
+    # Grafik Historis (Fixed Numeric X-Axis dengan Interval Paksa 1 Tahun)
     df_solar_hist = pd.DataFrame({
-        "Tahun": ["2020", "2021", "2022", "2023", "2024", "2025", "2026"],
+        "Tahun": [2020, 2021, 2022, 2023, 2024, 2025, 2026],
         "Konsumsi (Juta kL)": [33.5, 33.4, 36.2, 37.8, 39.2, 39.5, 39.84]
     })
     fig_solar = px.line(df_solar_hist, x="Tahun", y="Konsumsi (Juta kL)", markers=True, title=r"Historis & Proyeksi Konsumsi Solar Nasional ($y = 32.41 + 3.82 \ln(x)$)")
-    fig_solar.add_vline(x="2025", line_dash="dash", line_color="red", annotation_text="Proyeksi 2026 ->")
+    fig_solar.add_vline(x=2025, line_dash="dash", line_color="red", annotation_text="Proyeksi 2026 ->")
     fig_solar.update_traces(line_color="#e63946", marker=dict(size=10))
-    fig_solar.update_layout(xaxis=dict(type='category'))
+    fig_solar.update_layout(xaxis=dict(tickmode='linear', dtick=1))
     st.plotly_chart(fig_solar, use_container_width=True, config={'staticPlot': True})
     
     # Kalkulasi Dinamis Solar
