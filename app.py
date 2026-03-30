@@ -31,13 +31,13 @@ with st.container(border=True):
     st.subheader("a. Substitusi Impor Solar & Dinamika FAME")
     st.markdown("Berdasarkan regresi logaritmik, **konsumsi solar 2026 diprediksi sebesar 39,84 Juta kL**.")
     
-    # Grafik Historis (Fixed Numeric X-Axis dengan Interval Paksa 1 Tahun)
+    # Grafik Historis
     df_solar_hist = pd.DataFrame({
-        "Tahun": [2020, 2021, 2022, 2023, 2024, 2025, 2026],
+        "Tahun": ["2020", "2021", "2022", "2023", "2024", "2025", "2026"],
         "Konsumsi (Juta kL)": [33.5, 33.4, 36.2, 37.8, 39.2, 39.5, 39.84]
     })
     fig_solar = px.line(df_solar_hist, x="Tahun", y="Konsumsi (Juta kL)", markers=True, title=r"Historis & Proyeksi Konsumsi Solar Nasional ($y = 32.41 + 3.82 \ln(x)$)")
-    fig_solar.add_vline(x=2025, line_dash="dash", line_color="red", annotation_text="Proyeksi 2026 ->")
+    fig_solar.add_vline(x="2025", line_dash="dash", line_color="red", annotation_text="Proyeksi 2026 ->")
     fig_solar.update_traces(line_color="#e63946", marker=dict(size=10))
     fig_solar.update_layout(xaxis=dict(tickmode='linear', dtick=1))
     st.plotly_chart(fig_solar, use_container_width=True, config={'staticPlot': True})
@@ -94,7 +94,6 @@ with col_b2:
     # Ekonomi
     hemat_kas_negara = (vol_hemat_bensin * 1700) / 1000
     
-    # Perhitungan Hemat Rakyat Asli (Ev 5x lebih hemat / 80% cut)
     biaya_bensin_awal = vol_hemat_bensin * 10 # Jt KL * Rp 10.000 = Triliun Rp
     biaya_listrik = biaya_bensin_awal / 5
     hemat_rakyat = biaya_bensin_awal - biaya_listrik 
@@ -115,7 +114,7 @@ st.markdown(html_cards_1b, unsafe_allow_html=True)
 
 # MULTIPLIER EFFECT & RUMUS BENSIN DI 1b
 with st.expander("💡 Buka Detail Perhitungan Hemat Rakyat & Multiplier Effect (PDB)", expanded=True):
-    st.markdown(rf"""
+    st.markdown(f"""
     **Dari Mana Angka Hemat Rakyat Berasal?**
     * **Biaya Motor Bensin:** Asumsi efisiensi 50 km/liter dengan harga BBM Rp 10.000/liter = **Rp 200 / km**.
     * **Biaya Motor Listrik:** Tarif dasar Rp 1.444,7/kWh. Konversi uji coba (1 kWh untuk 35 km) menghasilkan biaya operasional = **Rp 41,3 / km**.
@@ -124,8 +123,8 @@ with st.expander("💡 Buka Detail Perhitungan Hemat Rakyat & Multiplier Effect 
     * **Kesimpulan:** Secara rata-rata, menggunakan kendaraan listrik memangkas **biaya operasional (Hemat) sebesar 5x lipat** dari bensin biasa.
     
     **Simulasi Angka:**
-    * Total Biaya Bensin Awal: {vol_hemat_bensin:.2f} Jt kL $\times$ Rp 10.000 = Rp {biaya_bensin_awal:.2f} Triliun.
-    * Total Biaya Listrik: Rp {biaya_bensin_awal:.2f} Triliun $\div$ 5 = Rp {biaya_listrik:.2f} Triliun.
+    * Total Biaya Bensin Awal: {vol_hemat_bensin:.2f} Jt kL $\\times$ Rp 10.000 = Rp {biaya_bensin_awal:.2f} Triliun.
+    * Total Biaya Listrik: Rp {biaya_bensin_awal:.2f} Triliun $\\div$ 5 = Rp {biaya_listrik:.2f} Triliun.
     * **Hemat Bersih Masyarakat ($E$):** Rp {biaya_bensin_awal:.2f} T $-$ Rp {biaya_listrik:.2f} T = **Rp {hemat_rakyat:.2f} Triliun**.
     """)
     st.divider()
@@ -141,7 +140,12 @@ with st.expander("💡 Buka Detail Perhitungan Hemat Rakyat & Multiplier Effect 
         st.info(f"**Nilai Multiplier ($k$) = {k_res:.3f}**")
     with c_m2:
         st.latex(r"k = \frac{1}{1 - c(1 - t) + m}")
-        st.success(rf"#### 📈 Dorongan PDB Nasional:\n#### Rp {(hemat_rakyat * k_res):.2f} Triliun\n\n$\Delta \text{{PDB}} = E \times k$")
+        
+        # Perbaikan syntax error pada format string st.success
+        st.success(f"""#### 📈 Dorongan PDB Nasional:
+#### Rp {(hemat_rakyat * k_res):.2f} Triliun
+
+$\\Delta \\text{{PDB}} = E \\times k$""")
 
 st.divider()
 
@@ -171,18 +175,18 @@ with st.container(border=True):
     st.markdown(html_cards_2, unsafe_allow_html=True)
 
     with st.expander("💡 Buka Detail Penjelasan & Rumus Ketahanan Devisa"):
-        st.markdown("""
-        **Bagaimana Nilai Devisa Ini Dihitung?**
-        1. **Konversi ke Satuan Barel:** Di pasar global, minyak tidak dihitung dalam liter melainkan Barel. Konstanta konversinya adalah **1 kL = 6,2898 Barel**.
-           - **Barel Solar** = Volume Impor Solar Dicegah $\\times$ 6,2898.
-           - **Barel Bensin** = Volume Impor Bensin Dicegah $\\times$ 6,2898.
-        2. **Perhitungan Devisa (Rp):** Jumlah barel dikalikan harga minyak dunia (USD) di slider, lalu dikalikan kurs Rupiah terhadap Dollar saat ini.
-        3. **Rasio terhadap Defisit APBN 2026:** Membandingkan nilai devisa yang terselamatkan dengan proyeksi target defisit APBN 2026 (Rp 689,1 Triliun).
-        4. **Rasio terhadap PDB Nominal 2025:** Membandingkan nilai devisa dengan total PDB Nominal 2025 (Rp 23.821,1 Triliun).
-        """)
+        st.markdown("**Bagaimana Nilai Devisa Ini Dihitung?**")
+        
+        st.markdown("1. **Konversi ke Satuan Barel:** Di pasar global, minyak tidak dihitung dalam liter melainkan Barel. Konstanta konversinya adalah **1 kL = 6,2898 Barel**.\n   - **Barel Solar** = Volume Impor Solar Dicegah $\\times$ 6,2898.\n   - **Barel Bensin** = Volume Impor Bensin Dicegah $\\times$ 6,2898.")
         st.latex(r"\text{Total Barel} = (V_{impor\_solar} + V_{hemat\_bensin}) \times 6,2898")
+        
+        st.markdown("2. **Perhitungan Devisa (Rp):** Jumlah barel dikalikan harga minyak dunia (USD) di slider, lalu dikalikan kurs Rupiah terhadap Dollar saat ini.")
         st.latex(r"\text{Devisa (Rp)} = \text{Total Barel} \times \text{Harga Minyak (\$)} \times \text{Kurs}")
+        
+        st.markdown("3. **Rasio terhadap Defisit APBN 2026:** Membandingkan nilai devisa yang terselamatkan dengan proyeksi target defisit APBN 2026 (Rp 689,1 Triliun).")
         st.latex(r"\% \text{ Defisit} = \frac{\text{Devisa (Rp)}}{\text{Defisit APBN 2026 (Rp 689,1 T)}} \times 100")
+        
+        st.markdown("4. **Rasio terhadap PDB Nominal 2025:** Membandingkan nilai devisa dengan total PDB Nominal 2025 (Rp 23.821,1 Triliun).")
         st.latex(r"\% \text{ PDB} = \frac{\text{Devisa (Rp)}}{\text{PDB 2025 (Rp 23.821,1 T)}} \times 100")
 
 st.divider()
@@ -208,6 +212,15 @@ with st.container(border=True):
             st.success(f"**Aman!** Beban {kebutuhan_twh:.2f} TWh di bawah surplus PLN ({surplus_twh} TWh).")
         else:
             st.error(f"**Defisit!** Butuh daya melampaui surplus PLN.")
+            
+    with st.expander("💡 Buka Penjelasan & Rumus Skenario Listrik"):
+        st.markdown("""
+        **Dari mana angka kebutuhan dan surplus ini berasal?**
+        - **Kebutuhan Listrik Tambahan:** Diperoleh dari total volume bensin yang dihemat (dalam liter) dikalikan dengan faktor konversi energi. Menurut Kementerian ESDM, **1 Liter BBM setara dengan 1,2 kWh**.
+        - **Surplus Listrik Nasional (36,31 TWh):** Berdasarkan data tahun 2025, produksi listrik nasional mencapai sekitar 354 TWh, sementara konsumsi berada di angka 317,69 TWh. Selisih inilah yang menjadi surplus (kapasitas menganggur) yang siap digunakan.
+        """)
+        st.latex(r"\text{Beban EV (TWh)} = \text{Volume Bensin Dihemat (Juta kL)} \times 1,2 \text{ kWh}")
+        st.latex(r"\text{Surplus} = \text{Produksi Listrik (354 TWh)} - \text{Konsumsi (317,69 TWh)}")
 
 st.divider()
 
@@ -223,7 +236,11 @@ with col_i1:
         porsi_swap = st.slider("Pengguna Swap (%)", 0, 100, 40)
         # Kalkulasi infrastruktur menggunakan target_ev_motor
         estimasi_baterai = (182.21 + (258.04 - 182.21) * (porsi_swap/100)) * (target_ev_motor/100)
-        st.warning(rf"**Kebutuhan Pack Baterai:**\n### {estimasi_baterai:.2f} Juta Unit\n\n$B_{{pool}} = D \times \frac{{d}}{{H}} \times 1.2$")
+        
+        st.warning(f"""**Kebutuhan Pack Baterai:**
+### {estimasi_baterai:.2f} Juta Unit
+
+$B_{{pool}} = D \\times \\frac{{d}}{{H}} \\times 1.2$""")
 
 with col_i2:
     with st.container(border=True):
@@ -233,7 +250,12 @@ with col_i2:
         rasio_spklu = st.number_input("Rasio Mobil : 1 SPKLU", value=15)
         kebutuhan_spklu = (mobil_ev * 1_000_000) / rasio_spklu
         investasi_spklu = (kebutuhan_spklu * 250) / 1_000_000 # Asumsi 250jt
-        st.warning(f"**Kebutuhan Mesin:**\n### {kebutuhan_spklu:,.0f} Unit\n\n**Estimasi Biaya:**\n### Rp {investasi_spklu:.2f} Triliun")
+        
+        st.warning(f"""**Kebutuhan Mesin:**
+### {kebutuhan_spklu:,.0f} Unit
+
+**Estimasi Biaya:**
+### Rp {investasi_spklu:.2f} Triliun""")
 
 st.divider()
 
@@ -251,5 +273,10 @@ with st.container(border=True):
     loss_pkb = 43.86 * rata_rata_ev
     
     c_p1, c_p2 = st.columns(2)
-    c_p1.error(rf"#### 📉 Loss PBBKB:\n#### Rp {loss_pbbkb:.2f} Triliun\n\n$L_{{PBBKB}} = V \times P \times t$")
-    c_p2.error(rf"#### 📉 Loss PKB & SWDKLLJ:\n#### Rp {loss_pkb:.2f} Triliun")
+    c_p1.error(f"""#### 📉 Loss PBBKB:
+#### Rp {loss_pbbkb:.2f} Triliun
+
+$L_{{PBBKB}} = V \\times P \\times t$""")
+    
+    c_p2.error(f"""#### 📉 Loss PKB & SWDKLLJ:
+#### Rp {loss_pkb:.2f} Triliun""")
