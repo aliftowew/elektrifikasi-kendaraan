@@ -21,12 +21,12 @@ st.title("📊 Analisis Kebijakan Substitusi Impor BBM & Elektrifikasi")
 with st.sidebar:
     st.header("⚙️ Parameter Global")
     st.markdown("Atur variabel simulasi di sini:")
-    target_ev_motor = st.slider("Target EV Motor (%)", 0, 100, 100, step=5)
-    target_ev_mobil = st.slider("Target EV Mobil <1400cc (%)", 0, 100, 100, step=5)
-    target_fame = st.slider("Komposisi FAME (Biosolar) (%)", 30, 80, 50, step=5)
+    target_ev_motor = st.slider("🏍️ Target EV Motor (%)", 0, 100, 100, step=5)
+    target_ev_mobil = st.slider("🚗 Target EV Mobil <1400cc (%)", 0, 100, 100, step=5)
+    target_fame = st.slider("🌱 Komposisi FAME (Biosolar) (%)", 30, 80, 50, step=5)
     st.divider()
-    harga_minyak = st.slider("Harga Minyak Dunia ($/bbl)", 50, 150, 90, step=5)
-    kurs_rp = st.slider("Kurs Rupiah (Rp/USD)", 14000, 18000, 16896, step=100)
+    harga_minyak = st.slider("🛢️ Harga Minyak Dunia ($/bbl)", 50, 150, 90, step=5)
+    kurs_rp = st.slider("💱 Kurs Rupiah (Rp/USD)", 14000, 18000, 16896, step=100)
 
 st.divider()
 
