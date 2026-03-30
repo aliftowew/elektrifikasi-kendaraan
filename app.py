@@ -31,13 +31,12 @@ with st.container(border=True):
     st.subheader("a. Substitusi Impor Solar & Dinamika FAME")
     st.markdown("Berdasarkan regresi logaritmik, **konsumsi solar 2026 diprediksi sebesar 39,84 Juta kL**.")
     
-    # Grafik Historis (Perbaikan Bug Plotly)
+    # Grafik Historis
     df_solar_hist = pd.DataFrame({
         "Tahun": [2020, 2021, 2022, 2023, 2024, 2025, 2026],
         "Konsumsi (Juta kL)": [33.5, 33.4, 36.2, 37.8, 39.2, 39.5, 39.84]
     })
     fig_solar = px.line(df_solar_hist, x="Tahun", y="Konsumsi (Juta kL)", markers=True, title="Historis & Proyeksi Konsumsi Solar Nasional")
-    # Pastikan x=2025 (tanpa tanda kutip) agar tidak error TypeError
     fig_solar.add_vline(x=2025, line_dash="dash", line_color="red", annotation_text="Proyeksi 2026 ->")
     fig_solar.update_traces(line_color="#e63946", marker=dict(size=10))
     fig_solar.update_layout(xaxis=dict(tickformat="d", dtick=1))
@@ -118,7 +117,7 @@ with st.expander("💡 Dari Mana Angka Hemat Rakyat & Multiplier (PDB) Berasal?"
     st.markdown(f"""
     **1. Analisis Biaya Kendaraan (Hemat Rakyat):**
     * **Biaya Motor Bensin:** Asumsi efisiensi 50 km/liter dengan harga BBM Rp 10.000/liter = **Rp 200 / km**.
-    * **Biaya Motor Listrik:** Tarif dasar Rp 1.444,7/kWh. Konversi uji coba (1 kWh untuk 35 km) menghasilkan biaya operasional = **Rp 41,3 / km**.
+    * **Biaya Motor Listrik:** Tarif dasar Rp 1.444,7/kWh. Penggunaan riil 1 kWh dapat menempuh 35 km, sehingga biaya operasional = **Rp 41,3 / km**.
     * **Biaya Mobil Bensin:** Asumsi efisiensi 16 km/liter (Rp 10.000/liter) = **Rp 625 / km**.
     * **Biaya Mobil Listrik:** Biaya rata-rata operasional EV = **Rp 150 / km**.
     * **Kesimpulan:** Secara rata-rata, menggunakan kendaraan listrik memangkas **biaya operasional (Hemat) sebesar 5x lipat** dari bensin biasa.
@@ -176,10 +175,9 @@ with st.container(border=True):
         st.markdown(f"""
         **Alur Simulasi Angka:**
         * **Konversi ke Satuan Barel:** Di pasar global, minyak dihitung dalam Barel. Konstanta konversinya adalah 1 kL setara 6,2898 Barel.
-            * **Total Barel Dicegah:** (Impor Solar {impor_dihemat_solar:.2f} Jt kL + Impor Bensin {vol_hemat_bensin:.2f} Jt kL) × 6,2898 = **{tot_barel:.2f} Juta Barel**.
-        * **Perhitungan Devisa Negara:** {tot_barel:.2f} Juta Barel × Harga Minyak (USD {harga_minyak}/barel) × Kurs (Rp {kurs_rp}/USD) = **Rp {hemat_rp_devisa:.2f} Triliun**.
-        * **Rasio terhadap Defisit:** Rp {hemat_rp_devisa:.2f} T ÷ Target Defisit APBN (Rp 689,1 T) = **{persen_defisit_tot:.2f}%**.
-        * **Rasio terhadap PDB Nominal:** Rp {hemat_rp_devisa:.2f} T ÷ PDB 2025 (Rp 23.821,1 T) = **{persen_pdb_tot:.2f}%**.
+            * Total Solar dan Bensin yang tidak jadi diimpor dikalikan konstanta tersebut, menghasilkan **{tot_barel:.2f} Juta Barel** minyak yang tidak perlu kita beli dari luar negeri.
+        * **Perhitungan Devisa Negara:** {tot_barel:.2f} Juta Barel dikalikan dengan Harga Minyak (USD {harga_minyak}/barel) dan Kurs (Rp {kurs_rp}/USD). Hasilnya adalah nilai Rupiah yang berhasil ditahan di dalam negeri (**Rp {hemat_rp_devisa:.2f} Triliun**).
+        * **Rasio terhadap Defisit:** Uang devisa yang diselamatkan ini dibandingkan dengan proyeksi defisit APBN pemerintah, membuktikan bahwa kebijakan ini bisa menambal celah utang negara secara signifikan.
         """)
 
 st.divider()
@@ -209,8 +207,7 @@ with st.container(border=True):
     with st.expander("💡 Dari Mana Angka Skenario Listrik Berasal?", expanded=True):
         st.markdown(f"""
         **Alur Simulasi Angka:**
-        * **Kebutuhan Listrik Tambahan:** Berasal dari total bensin yang dihemat ({vol_hemat_bensin:.2f} Juta kL atau Miliar Liter) dikalikan dengan faktor konversi **1,2 kWh per liter**. 
-        * **Perhitungan Beban:** {vol_hemat_bensin:.2f} Juta kL × 1,2 = **{kebutuhan_twh:.2f} TWh** per tahun.
+        * **Kebutuhan Listrik Tambahan:** Berasal dari total bensin yang dihemat ({vol_hemat_bensin:.2f} Juta kL atau Miliar Liter) dikalikan dengan faktor konversi 1,2 kWh per liter. Hasilnya adalah beban tambahan **{kebutuhan_twh:.2f} TWh** per tahun.
         * **Surplus Listrik Nasional (Kapasitas Menganggur):** Berdasarkan data PLN, kapasitas produksi listrik nasional adalah 354 TWh, sementara yang terpakai hanya 317,69 TWh. 
         * **Kesimpulan:** Selisihnya menciptakan cadangan tenaga sebesar 354 − 317,69 = **36,31 TWh**, yang jauh lebih besar dari beban baru kendaraan listrik. Tidak perlu membangun pembangkit listrik baru secara mendadak.
         """)
@@ -271,25 +268,30 @@ with col_i3:
         rasio_spklu = st.number_input("Rasio Mobil : 1 SPKLU", value=15)
         kebutuhan_spklu = (mobil_ev * 1_000_000) / rasio_spklu
         
-        with st.expander("⚙️ Atur Komposisi & Harga Mesin"):
-            p_med = st.number_input("Porsi Medium (%)", value=55)
-            h_med = st.number_input("Harga Medium (Juta Rp)", value=150)
+        with st.expander("⚙️ Atur Komposisi & Harga Mesin", expanded=True):
+            st.markdown("**Komposisi Charger (Otomatis 100%)**")
+            p_med = st.slider("Porsi Medium Charger (%)", 0, 100, 55)
+            # Menghitung sisa batas untuk fast agar total tidak lebih dari 100
+            batas_sisa = 100 - p_med
+            default_fast = 28 if batas_sisa >= 28 else batas_sisa
+            p_fast = st.slider("Porsi Fast Charger (%)", 0, batas_sisa, default_fast)
             
-            p_fast = st.number_input("Porsi Fast (%)", value=28)
-            h_fast = st.number_input("Harga Fast (Juta Rp)", value=350)
+            p_ultra = 100 - p_med - p_fast
+            st.info(f"**Porsi Ultra Fast Charger:** {p_ultra}% (Otomatis)")
             
-            p_ultra = st.number_input("Porsi Ultra Fast (%)", value=17)
-            h_ultra = st.number_input("Harga Ultra Fast (Juta Rp)", value=500)
+            st.markdown("**Harga per Unit (Juta Rp)**")
+            col_h1, col_h2, col_h3 = st.columns(3)
+            h_med = col_h1.number_input("Medium", value=150)
+            h_fast = col_h2.number_input("Fast", value=350)
+            h_ultra = col_h3.number_input("Ultra", value=500)
             
-        total_p = p_med + p_fast + p_ultra if (p_med + p_fast + p_ultra) > 0 else 100
-        
-        unit_med = kebutuhan_spklu * (p_med / total_p)
-        unit_fast = kebutuhan_spklu * (p_fast / total_p)
-        unit_ultra = kebutuhan_spklu * (p_ultra / total_p)
+        unit_med = kebutuhan_spklu * (p_med / 100)
+        unit_fast = kebutuhan_spklu * (p_fast / 100)
+        unit_ultra = kebutuhan_spklu * (p_ultra / 100)
         
         investasi_spklu = ((unit_med * h_med) + (unit_fast * h_fast) + (unit_ultra * h_ultra)) / 1_000_000 
         
-        st.warning(f"""**Kebutuhan Mesin:**
+        st.warning(f"""**Kebutuhan Mesin SPKLU:**
 ### {kebutuhan_spklu:,.0f} Unit
 
 **Estimasi Biaya Infrastruktur:**
@@ -305,7 +307,7 @@ with st.expander("💡 Dari Mana Angka Infrastruktur & Subsidi Berasal?", expand
     * **Kebutuhan Line Bengkel:** * Satu jalur pengerjaan (*line*) mampu menyelesaikan 730 hingga 3.650 motor per tahun.
         * Untuk menyelesaikan {vol_konversi:.2f} Juta motor konversi dalam proyek **{lama_proyek} tahun**, kita membagi total motor dengan kapasitas tersebut.
         * Hasilnya adalah rentang kebutuhan pembukaan **{line_bengkel_min:,.0f} hingga {line_bengkel_max:,.0f} Line Bengkel** di seluruh Indonesia.
-    * **Swap Baterai:** Menggunakan rasio pemakaian harian rata-rata pengendara, dikalikan dengan durasi pengisian (*charging rate*), serta ditambah 20% stok *buffer* cadangan.
+    * **Swap Baterai:** Menggunakan rasio pemakaian harian rata-rata pengendara, dikalikan dengan durasi pengisian (*charging rate*), serta ditambah 20% stok *buffer* cadangan untuk mencegah antrean panjang di jam pulang kerja.
     * **Mesin Charging Mobil (SPKLU):** Total {mobil_ev:.2f} Juta mobil listrik dibagi rasio kepadatan ideal ({rasio_spklu}:1) menghasilkan **{kebutuhan_spklu:,.0f} Unit SPKLU**.
         * Biaya Medium Charger: {unit_med:,.0f} unit × Rp {h_med} Juta.
         * Biaya Fast Charger: {unit_fast:,.0f} unit × Rp {h_fast} Juta.
