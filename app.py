@@ -15,6 +15,15 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# --- SINKRONISASI SESSION STATE (Untuk Widget Double di Sidebar & Main) ---
+if 'k_motor' not in st.session_state: st.session_state.k_motor = 1.6
+if 'h_motor' not in st.session_state: st.session_state.h_motor = 15.0
+if 'k_bat' not in st.session_state: st.session_state.k_bat = 2.0
+if 'h_bat' not in st.session_state: st.session_state.h_bat = 5.0
+
+def sync_var(var_name, widget_key):
+    st.session_state[var_name] = st.session_state[widget_key]
+
 st.title("📊 Analisis Kebijakan Substitusi Impor BBM & Elektrifikasi")
 
 # --- PENGATURAN GLOBAL (Di Sidebar) ---
@@ -27,6 +36,14 @@ with st.sidebar:
     st.divider()
     harga_minyak = st.slider("🛢️ Harga Minyak Dunia ($/bbl)", 50, 150, 90, step=5)
     kurs_rp = st.slider("💱 Kurs Rupiah (Rp/USD)", 14000, 18000, 16896, step=100)
+    
+    # Penambahan Parameter Supply Chain di Sidebar
+    st.divider()
+    st.header("🏭 Parameter Supply Chain")
+    st.slider("Kapasitas Motor (Jt Unit)", 0.5, 10.0, value=st.session_state.k_motor, step=0.1, key='sb_k_mot', on_change=sync_var, args=('k_motor', 'sb_k_mot'))
+    st.number_input("Harga Impor Motor (Jt Rp)", value=st.session_state.h_motor, step=1.0, key='sb_h_mot', on_change=sync_var, args=('h_motor', 'sb_h_mot'))
+    st.slider("Kapasitas Baterai (Jt Unit)", 0.1, 10.0, value=st.session_state.k_bat, step=0.1, key='sb_k_bat', on_change=sync_var, args=('k_bat', 'sb_k_bat'))
+    st.number_input("Harga Impor Baterai (Jt Rp)", value=st.session_state.h_bat, step=1.0, key='sb_h_bat', on_change=sync_var, args=('h_bat', 'sb_h_bat'))
 
 st.divider()
 
@@ -119,7 +136,7 @@ with col_b2:
 
 # HTML CARDS UNTUK BENSIN
 html_cards_1b = f"""<div style="background-color:#f8fafc;padding:25px;border-radius:12px;margin-bottom:20px;border:1px solid #e2e8f0;display:flex;gap:20px;flex-wrap:wrap;"><div style="flex:1;min-width:280px;background:white;padding:20px;border-radius:10px;border-top:4px solid #f59e0b;box-shadow:0 2px 4px rgba(0,0,0,0.05);"><h4 style="color:#b45309;margin-top:0;font-size:17px;">⛽ Neraca Pertalite Nasional</h4><p style="margin:8px 0;color:#334155;font-size:15px;">Total Konsumsi: <b>{vol_total_pertalite:.2f} Jt KL</b></p><p style="margin:8px 0;color:#334155;font-size:15px;">Import Awal: <b>{import_awal:.2f} Jt KL</b></p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:15px 0;"><p style="margin:8px 0;color:#16a34a;font-size:16px;">✅ Bensin Dihemat: <b>{vol_hemat_bensin:.2f} Jt KL</b></p><p style="margin:8px 0;color:#dc2626;font-size:16px;">⚠️ Sisa Import: <b>{sisa_import_bensin:.2f} Jt KL</b></p><p style="margin:20px 0 5px 0;color:#475569;font-size:15px;">Sisa Konsumsi: <b>{sisa_konsumsi:.2f} Jt KL</b></p></div><div style="flex:1;min-width:280px;background:white;padding:20px;border-radius:10px;border-top:4px solid #3b82f6;box-shadow:0 2px 4px rgba(0,0,0,0.05);"><h4 style="color:#1d4ed8;margin-top:0;font-size:17px;">💰 Dampak Ekonomi Nasional</h4><p style="margin:8px 0;color:#334155;font-size:15px;">Hemat Kas Negara: <span style="color:#16a34a;">Rp {hemat_kas_negara:.2f} T</span></p><p style="margin:8px 0;color:#334155;font-size:15px;">Hemat Rakyat: <span style="color:#16a34a;">Rp {hemat_rakyat:.2f} T</span></p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:15px 0;"><p style="margin:8px 0;color:#334155;font-size:15px;">Efek Pengganda (K): <span style="color:#2563eb;">+Rp {efek_pengganda:.2f} T</span></p><p style="margin:2px 0;color:#64748b;font-size:13px;">(porsi +{persen_pdb_bensin:.2f}% terhadap PDB Nominal)</p></div><div style="flex:1;min-width:280px;background:white;padding:20px;border-radius:10px;border-top:4px solid #10b981;box-shadow:0 2px 4px rgba(0,0,0,0.05);"><h4 style="color:#047857;margin-top:0;font-size:17px;">🌾 Kebutuhan Lahan E10</h4><p style="margin:8px 0;color:#64748b;font-size:13px;">(Untuk mem-backup 10% dari sisa konsumsi)</p><p style="margin:15px 0 8px 0;color:#334155;font-size:15px;">Kebutuhan Etanol: <b>{keb_etanol:.2f} Jt KL</b></p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:15px 0;"><p style="margin:8px 0;color:#334155;font-size:15px;">Opsi Tebu: <b>{opsi_tebu:.2f} Jt Ha</b></p><p style="margin:8px 0;color:#334155;font-size:15px;">Opsi Singkong: <b>{opsi_singkong:.2f} Jt Ha</b></p></div></div>"""
-st.markdown(html_cards_1b, unsafe_allow_html=True)
+    st.markdown(html_cards_1b, unsafe_allow_html=True)
 
 # MULTIPLIER EFFECT 
 with st.expander("💡 Dari Mana Angka Hemat Rakyat & Multiplier (PDB) Berasal?", expanded=True):
@@ -254,6 +271,14 @@ with col_i1:
 - **Jalur Beli Baru:** {vol_baru:.2f} Juta unit""")
         st.success(f"#### 💰 Total Biaya Subsidi Pemerintah:\n#### Rp {total_biaya_subsidi:.2f} Triliun")
 
+    st.divider()
+    
+    with st.container(border=True):
+        st.subheader("Swap Baterai Motor")
+        porsi_swap = st.slider("Pengguna Swap (%)", 0, 100, 40)
+        estimasi_baterai_awal = (182.21 + (258.04 - 182.21) * (porsi_swap/100)) * (target_ev_motor/100)
+        st.warning(f"**Kebutuhan Pack Baterai:**\n### {estimasi_baterai_awal:.2f} Juta Unit")
+
 with col_i2:
     with st.container(border=True):
         st.subheader("Kebutuhan Bengkel & SDM")
@@ -300,7 +325,7 @@ with col_i3:
         rasio_spklu = st.number_input("Rasio Mobil : 1 SPKLU", value=15)
         kebutuhan_spklu = (mobil_ev * 1_000_000) / rasio_spklu
         
-        with st.expander("⚙️ Atur Komposisi & Harga Mesin", expanded=True):
+        with st.expander("⚙️ Atur Komposisi & Harga Mesin", expanded=False):
             st.markdown("**Geser Titik Untuk Komposisi (%)**")
             st.markdown("<br>", unsafe_allow_html=True)
             batas = st.slider("Atur Batas Porsi", 0, 100, (55, 83), label_visibility="collapsed")
@@ -353,45 +378,35 @@ with st.container(border=True):
     # Kolom 1: Supply Chain Motor
     with col_sc1:
         st.markdown("#### 🏍️ Produksi Motor Listrik Nasional")
-        kapasitas_motor = st.slider("Kapasitas Pabrik Lokal (Juta Unit/Tahun)", 0.5, 5.0, 1.6, step=0.1)
-        harga_impor_motor = st.number_input("Harga Impor 1 Unit Motor EV (Juta Rp)", value=15.0)
+        kapasitas_motor = st.slider("Kapasitas Pabrik Lokal (Juta Unit/Tahun)", 0.5, 10.0, value=st.session_state.k_motor, step=0.1, key='main_k_mot', on_change=sync_var, args=('k_motor', 'main_k_mot'))
+        harga_impor_motor = st.number_input("Harga Impor 1 Unit Motor EV (Juta Rp)", value=st.session_state.h_motor, step=1.0, key='main_h_mot', on_change=sync_var, args=('h_motor', 'main_h_mot'))
         
         # Kalkulasi
         demand_motor_thn = vol_baru / lama_proyek
         defisit_motor_thn = max(0, demand_motor_thn - kapasitas_motor)
-        bocor_devisa_motor = (defisit_motor_thn * 1_000_000) * harga_impor_motor / 1_000_000
+        bocor_devisa_motor = defisit_motor_thn * harga_impor_motor
         
         if defisit_motor_thn > 0:
-            st.error(f"""**Kesenjangan Pasokan (Defisit):**
-### {defisit_motor_thn:.2f} Juta Unit / Tahun
-*(Permintaan {demand_motor_thn:.2f} Juta vs Kapasitas {kapasitas_motor:.2f} Juta)*
-
-**Potensi Kebocoran Devisa Impor (CBU):**
-### Rp {bocor_devisa_motor:.2f} Triliun / Tahun
-""")
+            st.warning(f"**Kesenjangan Pasokan (Defisit):**\n### {defisit_motor_thn:.2f} Juta Unit / Tahun\n*(Permintaan {demand_motor_thn:.2f} Juta vs Kapasitas {kapasitas_motor:.2f} Juta)*")
+            st.error(f"**Potensi Kebocoran Devisa Impor (CBU):**\n### Rp {bocor_devisa_motor:.2f} Triliun / Tahun")
         else:
             st.success(f"**Pasokan Aman!**\nKapasitas {kapasitas_motor:.2f} Juta sanggup memenuhi permintaan {demand_motor_thn:.2f} Juta unit/tahun.")
 
     # Kolom 2: Supply Chain Battery Pack
     with col_sc2:
         st.markdown("#### 🔋 Produksi Battery Pack Nasional")
-        kapasitas_baterai = st.slider("Kapasitas Pabrik Baterai Lokal (Juta Unit/Tahun)", 0.5, 10.0, 2.0, step=0.1)
-        harga_impor_baterai = st.number_input("Harga Impor 1 Pack Baterai (Juta Rp)", value=5.0)
+        kapasitas_baterai = st.slider("Kapasitas Pabrik Baterai Lokal (Juta Unit/Tahun)", 0.1, 10.0, value=st.session_state.k_bat, step=0.1, key='main_k_bat', on_change=sync_var, args=('k_bat', 'main_k_bat'))
+        harga_impor_baterai = st.number_input("Harga Impor 1 Pack Baterai (Juta Rp)", value=st.session_state.h_bat, step=1.0, key='main_h_bat', on_change=sync_var, args=('h_bat', 'main_h_bat'))
         
         # Kalkulasi
-        estimasi_baterai_swap = (182.21 + (258.04 - 182.21) * (40/100)) * (target_ev_motor/100) # asumsi dasar porsi swap 40%
+        estimasi_baterai_swap = (182.21 + (258.04 - 182.21) * (40/100)) * (target_ev_motor/100) # Asumsi swap 40% tetap untuk perhitungan global baterai
         demand_bat_thn = (total_motor_ev + estimasi_baterai_swap) / lama_proyek
         defisit_bat_thn = max(0, demand_bat_thn - kapasitas_baterai)
-        bocor_devisa_bat = (defisit_bat_thn * 1_000_000) * harga_impor_baterai / 1_000_000
+        bocor_devisa_bat = defisit_bat_thn * harga_impor_baterai
         
         if defisit_bat_thn > 0:
-            st.error(f"""**Kesenjangan Pasokan Baterai (Defisit):**
-### {defisit_bat_thn:.2f} Juta Unit / Tahun
-*(Permintaan {demand_bat_thn:.2f} Juta vs Kapasitas {kapasitas_baterai:.2f} Juta)*
-
-**Potensi Kebocoran Devisa Impor Baterai:**
-### Rp {bocor_devisa_bat:.2f} Triliun / Tahun
-""")
+            st.warning(f"**Kesenjangan Pasokan Baterai (Defisit):**\n### {defisit_bat_thn:.2f} Juta Unit / Tahun\n*(Permintaan {demand_bat_thn:.2f} Juta vs Kapasitas {kapasitas_baterai:.2f} Juta)*")
+            st.error(f"**Potensi Kebocoran Devisa Impor Baterai:**\n### Rp {bocor_devisa_bat:.2f} Triliun / Tahun")
         else:
             st.success(f"**Pasokan Baterai Aman!**\nKapasitas {kapasitas_baterai:.2f} Juta sanggup memenuhi permintaan tahunan.")
 
