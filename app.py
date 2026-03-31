@@ -119,7 +119,7 @@ with col_b2:
 
 # HTML CARDS UNTUK BENSIN
 html_cards_1b = f"""<div style="background-color:#f8fafc;padding:25px;border-radius:12px;margin-bottom:20px;border:1px solid #e2e8f0;display:flex;gap:20px;flex-wrap:wrap;"><div style="flex:1;min-width:280px;background:white;padding:20px;border-radius:10px;border-top:4px solid #f59e0b;box-shadow:0 2px 4px rgba(0,0,0,0.05);"><h4 style="color:#b45309;margin-top:0;font-size:17px;">⛽ Neraca Pertalite Nasional</h4><p style="margin:8px 0;color:#334155;font-size:15px;">Total Konsumsi: <b>{vol_total_pertalite:.2f} Jt KL</b></p><p style="margin:8px 0;color:#334155;font-size:15px;">Import Awal: <b>{import_awal:.2f} Jt KL</b></p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:15px 0;"><p style="margin:8px 0;color:#16a34a;font-size:16px;">✅ Bensin Dihemat: <b>{vol_hemat_bensin:.2f} Jt KL</b></p><p style="margin:8px 0;color:#dc2626;font-size:16px;">⚠️ Sisa Import: <b>{sisa_import_bensin:.2f} Jt KL</b></p><p style="margin:20px 0 5px 0;color:#475569;font-size:15px;">Sisa Konsumsi: <b>{sisa_konsumsi:.2f} Jt KL</b></p></div><div style="flex:1;min-width:280px;background:white;padding:20px;border-radius:10px;border-top:4px solid #3b82f6;box-shadow:0 2px 4px rgba(0,0,0,0.05);"><h4 style="color:#1d4ed8;margin-top:0;font-size:17px;">💰 Dampak Ekonomi Nasional</h4><p style="margin:8px 0;color:#334155;font-size:15px;">Hemat Kas Negara: <span style="color:#16a34a;">Rp {hemat_kas_negara:.2f} T</span></p><p style="margin:8px 0;color:#334155;font-size:15px;">Hemat Rakyat: <span style="color:#16a34a;">Rp {hemat_rakyat:.2f} T</span></p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:15px 0;"><p style="margin:8px 0;color:#334155;font-size:15px;">Efek Pengganda (K): <span style="color:#2563eb;">+Rp {efek_pengganda:.2f} T</span></p><p style="margin:2px 0;color:#64748b;font-size:13px;">(porsi +{persen_pdb_bensin:.2f}% terhadap PDB Nominal)</p></div><div style="flex:1;min-width:280px;background:white;padding:20px;border-radius:10px;border-top:4px solid #10b981;box-shadow:0 2px 4px rgba(0,0,0,0.05);"><h4 style="color:#047857;margin-top:0;font-size:17px;">🌾 Kebutuhan Lahan E10</h4><p style="margin:8px 0;color:#64748b;font-size:13px;">(Untuk mem-backup 10% dari sisa konsumsi)</p><p style="margin:15px 0 8px 0;color:#334155;font-size:15px;">Kebutuhan Etanol: <b>{keb_etanol:.2f} Jt KL</b></p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:15px 0;"><p style="margin:8px 0;color:#334155;font-size:15px;">Opsi Tebu: <b>{opsi_tebu:.2f} Jt Ha</b></p><p style="margin:8px 0;color:#334155;font-size:15px;">Opsi Singkong: <b>{opsi_singkong:.2f} Jt Ha</b></p></div></div>"""
-st.markdown(html_cards_1b, unsafe_allow_html=True)
+    st.markdown(html_cards_1b, unsafe_allow_html=True)
 
 # MULTIPLIER EFFECT 
 with st.expander("💡 Dari Mana Angka Hemat Rakyat & Multiplier (PDB) Berasal?", expanded=True):
@@ -240,7 +240,7 @@ with col_i1:
         subsidi_konv = col_s1.number_input("Subsidi Konversi (Juta Rp)", value=10.0, step=1.0)
         subsidi_baru = col_s2.number_input("Subsidi Unit Baru (Juta Rp)", value=7.0, step=1.0)
         
-        # Kalkulasi Total Unit
+        # Kalkulasi
         total_motor_ev = 145.24 * (target_ev_motor / 100)
         vol_konversi = total_motor_ev * (porsi_konversi / 100)
         vol_baru = total_motor_ev * (porsi_baru / 100)
@@ -285,9 +285,10 @@ with col_i2:
 
         st.warning(f"""**Kebutuhan Infrastruktur Bengkel:**
 ### {line_bengkel_min:,.0f} - {line_bengkel_max:,.0f} Line
-<p style='font-size:13px; color:#555;'>👤 <b>Kebutuhan SDM:</b> {sdm_min:,.0f} - {sdm_max:,.0f} Teknisi<br>
-<i>(1 Perawatan & 1 Instalatur per line)</i></p>
-""", unsafe_allow_html=True)
+
+👤 **Kebutuhan SDM:** {sdm_min:,.0f} - {sdm_max:,.0f} Teknisi  
+*(1 Perawatan & 1 Instalatur per line)*
+""")
         
         st.info(f"""**Distribusi Tipe Bengkel:**
 * **Tipe A (2 Line):** {bengkel_a_min:,.0f} - {bengkel_a_max:,.0f} Unit ({porsi_tipe_a}%)
