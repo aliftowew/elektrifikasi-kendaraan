@@ -254,6 +254,14 @@ with col_i1:
 - **Jalur Beli Baru:** {vol_baru:.2f} Juta unit""")
         st.success(f"#### 💰 Total Biaya Subsidi Pemerintah:\n#### Rp {total_biaya_subsidi:.2f} Triliun")
 
+    st.divider()
+    
+    with st.container(border=True):
+        st.subheader("Swap Baterai Motor")
+        porsi_swap = st.slider("Pengguna Swap (%)", 0, 100, 40)
+        estimasi_baterai = (182.21 + (258.04 - 182.21) * (porsi_swap/100)) * (target_ev_motor/100)
+        st.warning(f"**Kebutuhan Pack Baterai:**\n### {estimasi_baterai:.2f} Juta Unit")
+
 with col_i2:
     with st.container(border=True):
         st.subheader("Kebutuhan Bengkel & SDM")
@@ -269,7 +277,6 @@ with col_i2:
         pa = porsi_tipe_a / 100
         pb = porsi_tipe_b / 100
         
-        # W = L / (2*pa + 1*pb)
         faktor_pembagi = (2 * pa) + pb
         
         bengkel_tot_min = line_bengkel_min / faktor_pembagi
@@ -294,12 +301,6 @@ with col_i2:
 * **Tipe A (2 Line):** {bengkel_a_min:,.0f} - {bengkel_a_max:,.0f} Unit ({porsi_tipe_a}%)
 * **Tipe B (1 Line):** {bengkel_b_min:,.0f} - {bengkel_b_max:,.0f} Unit ({porsi_tipe_b}%)
 """)
-        
-        st.divider()
-        st.subheader("Swap Baterai Motor")
-        porsi_swap = st.slider("Pengguna Swap (%)", 0, 100, 40)
-        estimasi_baterai = (182.21 + (258.04 - 182.21) * (porsi_swap/100)) * (target_ev_motor/100)
-        st.warning(f"**Kebutuhan Pack Baterai:**\n### {estimasi_baterai:.2f} Juta Unit")
 
 with col_i3:
     with st.container(border=True):
@@ -308,7 +309,7 @@ with col_i3:
         rasio_spklu = st.number_input("Rasio Mobil : 1 SPKLU", value=15)
         kebutuhan_spklu = (mobil_ev * 1_000_000) / rasio_spklu
         
-        with st.expander("⚙️ Atur Komposisi & Harga Mesin", expanded=False):
+        with st.expander("⚙️ Atur Komposisi & Harga Mesin", expanded=True):
             st.markdown("**Geser Titik Untuk Komposisi (%)**")
             st.markdown("<br>", unsafe_allow_html=True)
             batas = st.slider("Atur Batas Porsi", 0, 100, (55, 83), label_visibility="collapsed")
