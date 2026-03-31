@@ -299,8 +299,6 @@ with col_i1:
 - **Jalur Konversi:** {vol_konversi:.2f} Juta unit
 - **Jalur Beli Baru:** {vol_baru:.2f} Juta unit""")
         st.success(f"#### 💰 Total Biaya Subsidi Pemerintah:\n#### Rp {total_biaya_subsidi:.2f} Triliun")
-
-    st.divider()
     
     with st.container(border=True):
         st.subheader("Swap Baterai Motor")
