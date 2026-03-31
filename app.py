@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 # --- KONFIGURASI HALAMAN ---
 st.set_page_config(page_title="Dashboard Makroekonomi BBM", layout="wide")
 
-# CSS HACK: Sembunyikan angka di titik slider agar Range Slider terlihat lebih natural
+# CSS HACK: Sembunyikan angka di titik slider agar Range Slider terlihat natural
 st.markdown("""
 <style>
     div[data-testid="stThumbValue"] {
@@ -16,13 +16,21 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- SINKRONISASI SESSION STATE (Untuk Widget Double di Sidebar & Main) ---
-if 'k_motor' not in st.session_state: st.session_state.k_motor = 1.6
-if 'h_motor' not in st.session_state: st.session_state.h_motor = 15.0
-if 'k_bat' not in st.session_state: st.session_state.k_bat = 2.0
-if 'h_bat' not in st.session_state: st.session_state.h_bat = 5.0
+def sync_var(source_key, target_key):
+    st.session_state[target_key] = st.session_state[source_key]
 
-def sync_var(var_name, widget_key):
-    st.session_state[var_name] = st.session_state[widget_key]
+defaults = {
+    'porsi_konv': 70, 'sub_konv': 10.0, 'sub_baru': 7.0,
+    'lama_proyek': 4, 'porsi_tipe_a': 16, 'porsi_swap': 40,
+    'rasio_spklu': 15, 'batas_spklu': (55, 83),
+    'h_med': 150, 'h_fast': 350, 'h_ultra': 500,
+    'k_motor': 1.6, 'h_motor': 15.0, 'k_bat': 2.0, 'h_bat': 5.0,
+    'tarif_pbbkb': 10, 'pkb_mobil': 2.50, 'pkb_motor': 0.25
+}
+
+for k, v in defaults.items():
+    if f"main_{k}" not in st.session_state: st.session_state[f"main_{k}"] = v
+    if f"sb_{k}" not in st.session_state: st.session_state[f"sb_{k}"] = v
 
 st.title("📊 Analisis Kebijakan Substitusi Impor BBM & Elektrifikasi")
 
@@ -37,13 +45,32 @@ with st.sidebar:
     harga_minyak = st.slider("🛢️ Harga Minyak Dunia ($/bbl)", 50, 150, 90, step=5)
     kurs_rp = st.slider("💱 Kurs Rupiah (Rp/USD)", 14000, 18000, 16896, step=100)
     
-    # Penambahan Parameter Supply Chain di Sidebar
     st.divider()
-    st.header("🏭 Parameter Supply Chain")
-    st.slider("Kapasitas Motor (Jt Unit)", 0.5, 10.0, value=st.session_state.k_motor, step=0.1, key='sb_k_mot', on_change=sync_var, args=('k_motor', 'sb_k_mot'))
-    st.number_input("Harga Impor Motor (Jt Rp)", value=st.session_state.h_motor, step=1.0, key='sb_h_mot', on_change=sync_var, args=('h_motor', 'sb_h_mot'))
-    st.slider("Kapasitas Baterai (Jt Unit)", 0.1, 10.0, value=st.session_state.k_bat, step=0.1, key='sb_k_bat', on_change=sync_var, args=('k_bat', 'sb_k_bat'))
-    st.number_input("Harga Impor Baterai (Jt Rp)", value=st.session_state.h_bat, step=1.0, key='sb_h_bat', on_change=sync_var, args=('h_bat', 'sb_h_bat'))
+    st.header("🎛️ Navigasi Detail")
+    
+    with st.expander("🛠️ Subsidi & Infrastruktur", expanded=False):
+        st.slider("Porsi Konversi (%)", 0, 100, key="sb_porsi_konv", on_change=sync_var, args=("sb_porsi_konv", "main_porsi_konv"))
+        st.number_input("Sub. Konversi (Jt)", step=1.0, key="sb_sub_konv", on_change=sync_var, args=("sb_sub_konv", "main_sub_konv"))
+        st.number_input("Sub. Baru (Jt)", step=1.0, key="sb_sub_baru", on_change=sync_var, args=("sb_sub_baru", "main_sub_baru"))
+        st.slider("Lama Proyek (Thn)", 1, 10, key="sb_lama_proyek", on_change=sync_var, args=("sb_lama_proyek", "main_lama_proyek"))
+        st.slider("Porsi Bengkel A (%)", 0, 100, key="sb_porsi_tipe_a", on_change=sync_var, args=("sb_porsi_tipe_a", "main_porsi_tipe_a"))
+        st.slider("Pengguna Swap (%)", 0, 100, key="sb_porsi_swap", on_change=sync_var, args=("sb_porsi_swap", "main_porsi_swap"))
+        st.number_input("Rasio Mobil:SPKLU", key="sb_rasio_spklu", on_change=sync_var, args=("sb_rasio_spklu", "main_rasio_spklu"))
+        st.slider("Porsi Mesin (%)", 0, 100, key="sb_batas_spklu", on_change=sync_var, args=("sb_batas_spklu", "main_batas_spklu"))
+        st.number_input("Harga Med (Jt)", key="sb_h_med", on_change=sync_var, args=("sb_h_med", "main_h_med"))
+        st.number_input("Harga Fast (Jt)", key="sb_h_fast", on_change=sync_var, args=("sb_h_fast", "main_h_fast"))
+        st.number_input("Harga Ultra (Jt)", key="sb_h_ultra", on_change=sync_var, args=("sb_h_ultra", "main_h_ultra"))
+
+    with st.expander("🏭 Supply Chain", expanded=False):
+        st.slider("Kapasitas Motor (Jt)", 0.5, 10.0, step=0.1, key="sb_k_motor", on_change=sync_var, args=("sb_k_motor", "main_k_motor"))
+        st.number_input("Impor Motor (Jt Rp)", step=1.0, key="sb_h_motor", on_change=sync_var, args=("sb_h_motor", "main_h_motor"))
+        st.slider("Kapasitas Bat. (Jt)", 0.1, 10.0, step=0.1, key="sb_k_bat", on_change=sync_var, args=("sb_k_bat", "main_k_bat"))
+        st.number_input("Impor Baterai (Jt Rp)", step=1.0, key="sb_h_bat", on_change=sync_var, args=("sb_h_bat", "main_h_bat"))
+
+    with st.expander("📉 Pajak Daerah", expanded=False):
+        st.slider("Tarif PBBKB (%)", 5, 10, key="sb_tarif_pbbkb", on_change=sync_var, args=("sb_tarif_pbbkb", "main_tarif_pbbkb"))
+        st.number_input("PKB Mobil (Jt)", min_value=1.85, max_value=3.32, step=0.01, key="sb_pkb_mobil", on_change=sync_var, args=("sb_pkb_mobil", "main_pkb_mobil"))
+        st.number_input("PKB Motor (Jt)", min_value=0.10, max_value=0.50, step=0.01, key="sb_pkb_motor", on_change=sync_var, args=("sb_pkb_motor", "main_pkb_motor"))
 
 st.divider()
 
@@ -57,7 +84,6 @@ with st.container(border=True):
     st.subheader("a. Substitusi Impor Solar & Dinamika FAME")
     st.markdown("Berdasarkan regresi logaritmik, **konsumsi solar 2026 diprediksi sebesar 39,84 Juta kL**.")
     
-    # Grafik Historis
     df_solar_hist = pd.DataFrame({
         "Tahun": [2020, 2021, 2022, 2023, 2024, 2025, 2026],
         "Konsumsi (Juta kL)": [33.5, 33.4, 36.2, 37.8, 39.2, 39.5, 39.84]
@@ -68,7 +94,6 @@ with st.container(border=True):
     fig_solar.update_layout(xaxis=dict(tickformat="d", dtick=1))
     st.plotly_chart(fig_solar, use_container_width=True, config={'staticPlot': True})
     
-    # Kalkulasi Dinamis Solar
     konsumsi_2026 = 39.84
     produksi_fosil_lokal = 20.1
     impor_baseline = 4.9
@@ -82,7 +107,6 @@ with st.container(border=True):
     beban_fame = (impor_dihemat_solar * 3000) / 1000 
     hemat_bersih_solar = hemat_kotor_solar - beban_fame
     
-    # HTML CARDS UNTUK SOLAR
     html_cards_1a = f"""<div style="background-color:#f8fafc;padding:25px;border-radius:12px;margin-bottom:20px;border:1px solid #e2e8f0;display:flex;gap:20px;flex-wrap:wrap;"><div style="flex:1;min-width:280px;background:white;padding:20px;border-radius:10px;border-top:4px solid #f59e0b;box-shadow:0 2px 4px rgba(0,0,0,0.05);"><h4 style="color:#b45309;margin-top:0;font-size:17px;">🛢️ Neraca Pasokan Solar 2026</h4><p style="margin:8px 0;color:#334155;font-size:15px;">Proyeksi Konsumsi: <b>{konsumsi_2026:.2f} Jt KL</b></p><p style="margin:8px 0;color:#334155;font-size:15px;">Kebutuhan FAME ({target_fame}%): <b>{vol_fame:.2f} Jt KL</b></p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:15px 0;"><p style="margin:8px 0;color:#16a34a;font-size:16px;">✅ Fosil Tersedia: <b>{produksi_fosil_lokal:.2f} Jt KL</b></p><p style="margin:8px 0;color:#dc2626;font-size:16px;">⚠️ Sisa Impor Solar: <b>{vol_impor:.2f} Jt KL</b></p></div><div style="flex:1;min-width:280px;background:white;padding:20px;border-radius:10px;border-top:4px solid #3b82f6;box-shadow:0 2px 4px rgba(0,0,0,0.05);"><h4 style="color:#1d4ed8;margin-top:0;font-size:17px;">💰 Dampak Keuangan Negara</h4><p style="margin:8px 0;color:#334155;font-size:15px;">Hemat Subsidi Impor: <span style="color:#16a34a;">Rp {hemat_kotor_solar:.2f} T</span></p><p style="margin:8px 0;color:#334155;font-size:15px;">Biaya Selisih FAME: <span style="color:#dc2626;">- Rp {beban_fame:.2f} T</span></p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:15px 0;"><p style="margin:20px 0 8px 0;color:#334155;font-size:17px;">🛡️ Penghematan Bersih: <span style="color:#16a34a;"><b>Rp {hemat_bersih_solar:.2f} T</b></span></p></div></div>"""
     st.markdown(html_cards_1a, unsafe_allow_html=True)
 
@@ -100,7 +124,7 @@ with st.container(border=True):
 # --- Sub-Poin Bensin ---
 st.subheader("b. Substitusi Impor Bensin (Pertalite)")
 
-col_b1, col_b2 = st.columns([1, 2])
+col_b1, col_b2 = st.columns([1, 1])
 with col_b1:
     df_bensin = pd.DataFrame({"Kategori": ["Motor", "Mobil <1400cc", "Lainnya (>1400cc)"], "Porsi (%)": [28.6, 31.4, 40.0]})
     fig_pie = px.pie(df_bensin, values='Porsi (%)', names='Kategori', hole=0.4, title="Profil Pengguna Pertalite")
@@ -118,25 +142,30 @@ with col_b2:
     sisa_import_bensin = max(0, import_awal - vol_hemat_bensin)
     sisa_konsumsi = vol_total_pertalite - vol_hemat_bensin
 
-    # Ekonomi
-    hemat_kas_negara = (vol_hemat_bensin * 1700) / 1000
-    biaya_bensin_awal = vol_hemat_bensin * 10 
-    biaya_listrik = biaya_bensin_awal / 5
-    hemat_rakyat = biaya_bensin_awal - biaya_listrik 
-    
-    k_multiplier = 1.934
-    efek_pengganda = hemat_rakyat * k_multiplier
-    pdb_nominal = 23821.10
-    persen_pdb_bensin = (efek_pengganda / pdb_nominal) * 100
+    st.markdown("<br><br>", unsafe_allow_html=True) # Spacer agar sejajar dengan donat
+    html_card_neraca = f"""<div style="background:white;padding:20px;border-radius:10px;border-top:4px solid #f59e0b;box-shadow:0 2px 4px rgba(0,0,0,0.05);height:100%;"><h4 style="color:#b45309;margin-top:0;font-size:17px;">⛽ Neraca Pertalite Nasional</h4><p style="margin:8px 0;color:#334155;font-size:15px;">Total Konsumsi: <b>{vol_total_pertalite:.2f} Jt KL</b></p><p style="margin:8px 0;color:#334155;font-size:15px;">Import Awal: <b>{import_awal:.2f} Jt KL</b></p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:15px 0;"><p style="margin:8px 0;color:#16a34a;font-size:16px;">✅ Bensin Dihemat: <b>{vol_hemat_bensin:.2f} Jt KL</b></p><p style="margin:8px 0;color:#dc2626;font-size:16px;">⚠️ Sisa Import: <b>{sisa_import_bensin:.2f} Jt KL</b></p><p style="margin:20px 0 5px 0;color:#475569;font-size:15px;">Sisa Konsumsi: <b>{sisa_konsumsi:.2f} Jt KL</b></p></div>"""
+    st.markdown(html_card_neraca, unsafe_allow_html=True)
 
-    # Lahan
-    keb_etanol = sisa_konsumsi * 0.10
-    opsi_tebu = keb_etanol / 4.9
-    opsi_singkong = keb_etanol / 4.07
+# Lanjut ke hitungan Ekonomi & Lahan di bawah kolom
+hemat_kas_negara = (vol_hemat_bensin * 1700) / 1000
+biaya_bensin_awal = vol_hemat_bensin * 10 
+biaya_listrik = biaya_bensin_awal / 5
+hemat_rakyat = biaya_bensin_awal - biaya_listrik 
 
-# HTML CARDS UNTUK BENSIN
-html_cards_1b = f"""<div style="background-color:#f8fafc;padding:25px;border-radius:12px;margin-bottom:20px;border:1px solid #e2e8f0;display:flex;gap:20px;flex-wrap:wrap;"><div style="flex:1;min-width:280px;background:white;padding:20px;border-radius:10px;border-top:4px solid #f59e0b;box-shadow:0 2px 4px rgba(0,0,0,0.05);"><h4 style="color:#b45309;margin-top:0;font-size:17px;">⛽ Neraca Pertalite Nasional</h4><p style="margin:8px 0;color:#334155;font-size:15px;">Total Konsumsi: <b>{vol_total_pertalite:.2f} Jt KL</b></p><p style="margin:8px 0;color:#334155;font-size:15px;">Import Awal: <b>{import_awal:.2f} Jt KL</b></p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:15px 0;"><p style="margin:8px 0;color:#16a34a;font-size:16px;">✅ Bensin Dihemat: <b>{vol_hemat_bensin:.2f} Jt KL</b></p><p style="margin:8px 0;color:#dc2626;font-size:16px;">⚠️ Sisa Import: <b>{sisa_import_bensin:.2f} Jt KL</b></p><p style="margin:20px 0 5px 0;color:#475569;font-size:15px;">Sisa Konsumsi: <b>{sisa_konsumsi:.2f} Jt KL</b></p></div><div style="flex:1;min-width:280px;background:white;padding:20px;border-radius:10px;border-top:4px solid #3b82f6;box-shadow:0 2px 4px rgba(0,0,0,0.05);"><h4 style="color:#1d4ed8;margin-top:0;font-size:17px;">💰 Dampak Ekonomi Nasional</h4><p style="margin:8px 0;color:#334155;font-size:15px;">Hemat Kas Negara: <span style="color:#16a34a;">Rp {hemat_kas_negara:.2f} T</span></p><p style="margin:8px 0;color:#334155;font-size:15px;">Hemat Rakyat: <span style="color:#16a34a;">Rp {hemat_rakyat:.2f} T</span></p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:15px 0;"><p style="margin:8px 0;color:#334155;font-size:15px;">Efek Pengganda (K): <span style="color:#2563eb;">+Rp {efek_pengganda:.2f} T</span></p><p style="margin:2px 0;color:#64748b;font-size:13px;">(porsi +{persen_pdb_bensin:.2f}% terhadap PDB Nominal)</p></div><div style="flex:1;min-width:280px;background:white;padding:20px;border-radius:10px;border-top:4px solid #10b981;box-shadow:0 2px 4px rgba(0,0,0,0.05);"><h4 style="color:#047857;margin-top:0;font-size:17px;">🌾 Kebutuhan Lahan E10</h4><p style="margin:8px 0;color:#64748b;font-size:13px;">(Untuk mem-backup 10% dari sisa konsumsi)</p><p style="margin:15px 0 8px 0;color:#334155;font-size:15px;">Kebutuhan Etanol: <b>{keb_etanol:.2f} Jt KL</b></p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:15px 0;"><p style="margin:8px 0;color:#334155;font-size:15px;">Opsi Tebu: <b>{opsi_tebu:.2f} Jt Ha</b></p><p style="margin:8px 0;color:#334155;font-size:15px;">Opsi Singkong: <b>{opsi_singkong:.2f} Jt Ha</b></p></div></div>"""
-st.markdown(html_cards_1b, unsafe_allow_html=True)
+k_multiplier = 1.934
+efek_pengganda = hemat_rakyat * k_multiplier
+pdb_nominal = 23821.10
+persen_pdb_bensin = (efek_pengganda / pdb_nominal) * 100
+
+keb_etanol = sisa_konsumsi * 0.10
+opsi_tebu = keb_etanol / 4.9
+opsi_singkong = keb_etanol / 4.07
+
+html_card_eko_lahan = f"""<div style="background-color:#f8fafc;padding:25px;border-radius:12px;margin-bottom:20px;border:1px solid #e2e8f0;display:flex;gap:20px;flex-wrap:wrap;">
+<div style="flex:1;min-width:280px;background:white;padding:20px;border-radius:10px;border-top:4px solid #3b82f6;box-shadow:0 2px 4px rgba(0,0,0,0.05);"><h4 style="color:#1d4ed8;margin-top:0;font-size:17px;">💰 Dampak Ekonomi Nasional</h4><p style="margin:8px 0;color:#334155;font-size:15px;">Hemat Kas Negara: <span style="color:#16a34a;">Rp {hemat_kas_negara:.2f} T</span></p><p style="margin:8px 0;color:#334155;font-size:15px;">Hemat Rakyat: <span style="color:#16a34a;">Rp {hemat_rakyat:.2f} T</span></p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:15px 0;"><p style="margin:8px 0;color:#334155;font-size:15px;">Efek Pengganda (K): <span style="color:#2563eb;">+Rp {efek_pengganda:.2f} T</span></p><p style="margin:2px 0;color:#64748b;font-size:13px;">(porsi +{persen_pdb_bensin:.2f}% terhadap PDB Nominal)</p></div>
+<div style="flex:1;min-width:280px;background:white;padding:20px;border-radius:10px;border-top:4px solid #10b981;box-shadow:0 2px 4px rgba(0,0,0,0.05);"><h4 style="color:#047857;margin-top:0;font-size:17px;">🌾 Kebutuhan Lahan E10</h4><p style="margin:8px 0;color:#64748b;font-size:13px;">(Untuk mem-backup 10% dari sisa konsumsi)</p><p style="margin:15px 0 8px 0;color:#334155;font-size:15px;">Kebutuhan Etanol: <b>{keb_etanol:.2f} Jt KL</b></p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:15px 0;"><p style="margin:8px 0;color:#334155;font-size:15px;">Opsi Tebu: <b>{opsi_tebu:.2f} Jt Ha</b></p><p style="margin:8px 0;color:#334155;font-size:15px;">Opsi Singkong: <b>{opsi_singkong:.2f} Jt Ha</b></p></div>
+</div>"""
+st.markdown(html_card_eko_lahan, unsafe_allow_html=True)
 
 # MULTIPLIER EFFECT 
 with st.expander("💡 Dari Mana Angka Hemat Rakyat & Multiplier (PDB) Berasal?", expanded=True):
@@ -250,12 +279,12 @@ col_i1, col_i2, col_i3 = st.columns(3)
 with col_i1:
     with st.container(border=True):
         st.subheader("Transisi Motor & Biaya Subsidi")
-        porsi_konversi = st.slider("Porsi Konversi Bengkel (%)", 0, 100, 70, step=5)
+        porsi_konversi = st.slider("Porsi Konversi Bengkel (%)", 0, 100, key="main_porsi_konv", on_change=sync_var, args=("main_porsi_konv", "sb_porsi_konv"))
         porsi_baru = 100 - porsi_konversi
         
         col_s1, col_s2 = st.columns(2)
-        subsidi_konv = col_s1.number_input("Subsidi Konversi (Juta Rp)", value=10.0, step=1.0)
-        subsidi_baru = col_s2.number_input("Subsidi Unit Baru (Juta Rp)", value=7.0, step=1.0)
+        subsidi_konv = col_s1.number_input("Subsidi Konversi (Juta Rp)", step=1.0, key="main_sub_konv", on_change=sync_var, args=("main_sub_konv", "sb_sub_konv"))
+        subsidi_baru = col_s2.number_input("Subsidi Unit Baru (Juta Rp)", step=1.0, key="main_sub_baru", on_change=sync_var, args=("main_sub_baru", "sb_sub_baru"))
         
         # Kalkulasi Total Unit
         total_motor_ev = 145.24 * (target_ev_motor / 100)
@@ -275,20 +304,20 @@ with col_i1:
     
     with st.container(border=True):
         st.subheader("Swap Baterai Motor")
-        porsi_swap = st.slider("Pengguna Swap (%)", 0, 100, 40)
+        porsi_swap = st.slider("Pengguna Swap (%)", 0, 100, key="main_porsi_swap", on_change=sync_var, args=("main_porsi_swap", "sb_porsi_swap"))
         estimasi_baterai_awal = (182.21 + (258.04 - 182.21) * (porsi_swap/100)) * (target_ev_motor/100)
         st.warning(f"**Kebutuhan Pack Baterai:**\n### {estimasi_baterai_awal:.2f} Juta Unit")
 
 with col_i2:
     with st.container(border=True):
         st.subheader("Kebutuhan Bengkel & SDM")
-        lama_proyek = st.slider("Lama Pengerjaan Proyek (Tahun)", 1, 10, 4)
+        lama_proyek = st.slider("Lama Pengerjaan Proyek (Tahun)", 1, 10, key="main_lama_proyek", on_change=sync_var, args=("main_lama_proyek", "sb_lama_proyek"))
         
         # Kapasitas 1 Line = 730 hingga 3650 motor per tahun
         line_bengkel_min = (vol_konversi * 1_000_000) / (3650 * lama_proyek)
         line_bengkel_max = (vol_konversi * 1_000_000) / (730 * lama_proyek)
         
-        porsi_tipe_a = st.slider("Porsi Bengkel Tipe A (%)", 0, 100, 16)
+        porsi_tipe_a = st.slider("Porsi Bengkel Tipe A (%)", 0, 100, key="main_porsi_tipe_a", on_change=sync_var, args=("main_porsi_tipe_a", "sb_porsi_tipe_a"))
         porsi_tipe_b = 100 - porsi_tipe_a
         
         pa = porsi_tipe_a / 100
@@ -322,13 +351,13 @@ with col_i3:
     with st.container(border=True):
         st.subheader("Mesin Charging Mobil (SPKLU)")
         mobil_ev = 4.46 * (target_ev_mobil / 100)
-        rasio_spklu = st.number_input("Rasio Mobil : 1 SPKLU", value=15)
+        rasio_spklu = st.number_input("Rasio Mobil : 1 SPKLU", key="main_rasio_spklu", on_change=sync_var, args=("main_rasio_spklu", "sb_rasio_spklu"))
         kebutuhan_spklu = (mobil_ev * 1_000_000) / rasio_spklu
         
-        with st.expander("⚙️ Atur Komposisi & Harga Mesin", expanded=False):
+        with st.expander("⚙️ Atur Komposisi & Harga Mesin", expanded=True):
             st.markdown("**Geser Titik Untuk Komposisi (%)**")
             st.markdown("<br>", unsafe_allow_html=True)
-            batas = st.slider("Atur Batas Porsi", 0, 100, (55, 83), label_visibility="collapsed")
+            batas = st.slider("Atur Batas Porsi", 0, 100, label_visibility="collapsed", key="main_batas_spklu", on_change=sync_var, args=("main_batas_spklu", "sb_batas_spklu"))
             
             p_med = batas[0]
             p_fast = batas[1] - batas[0]
@@ -351,9 +380,9 @@ with col_i3:
             
             st.markdown("**Harga per Unit (Juta Rp)**")
             col_h1, col_h2, col_h3 = st.columns(3)
-            h_med = col_h1.number_input("Medium", value=150)
-            h_fast = col_h2.number_input("Fast", value=350)
-            h_ultra = col_h3.number_input("Ultra", value=500)
+            h_med = col_h1.number_input("Medium", key="main_h_med", on_change=sync_var, args=("main_h_med", "sb_h_med"))
+            h_fast = col_h2.number_input("Fast", key="main_h_fast", on_change=sync_var, args=("main_h_fast", "sb_h_fast"))
+            h_ultra = col_h3.number_input("Ultra", key="main_h_ultra", on_change=sync_var, args=("main_h_ultra", "sb_h_ultra"))
             
         unit_med = kebutuhan_spklu * (p_med / 100)
         unit_fast = kebutuhan_spklu * (p_fast / 100)
@@ -378,8 +407,8 @@ with st.container(border=True):
     # Kolom 1: Supply Chain Motor
     with col_sc1:
         st.markdown("#### 🏍️ Produksi Motor Listrik Nasional")
-        kapasitas_motor = st.slider("Kapasitas Pabrik Lokal (Juta Unit/Tahun)", 0.5, 10.0, value=st.session_state.k_motor, step=0.1, key='main_k_mot', on_change=sync_var, args=('k_motor', 'main_k_mot'))
-        harga_impor_motor = st.number_input("Harga Impor 1 Unit Motor EV (Juta Rp)", value=st.session_state.h_motor, step=1.0, key='main_h_mot', on_change=sync_var, args=('h_motor', 'main_h_mot'))
+        kapasitas_motor = st.slider("Kapasitas Pabrik Lokal (Juta Unit/Tahun)", 0.5, 10.0, step=0.1, key='main_k_motor', on_change=sync_var, args=('main_k_motor', 'sb_k_motor'))
+        harga_impor_motor = st.number_input("Harga Impor 1 Unit Motor EV (Juta Rp)", step=1.0, key='main_h_motor', on_change=sync_var, args=('main_h_motor', 'sb_h_motor'))
         
         # Kalkulasi
         demand_motor_thn = vol_baru / lama_proyek
@@ -395,8 +424,8 @@ with st.container(border=True):
     # Kolom 2: Supply Chain Battery Pack
     with col_sc2:
         st.markdown("#### 🔋 Produksi Battery Pack Nasional")
-        kapasitas_baterai = st.slider("Kapasitas Pabrik Baterai Lokal (Juta Unit/Tahun)", 0.1, 10.0, value=st.session_state.k_bat, step=0.1, key='main_k_bat', on_change=sync_var, args=('k_bat', 'main_k_bat'))
-        harga_impor_baterai = st.number_input("Harga Impor 1 Pack Baterai (Juta Rp)", value=st.session_state.h_bat, step=1.0, key='main_h_bat', on_change=sync_var, args=('h_bat', 'main_h_bat'))
+        kapasitas_baterai = st.slider("Kapasitas Pabrik Baterai Lokal (Juta Unit/Tahun)", 0.1, 10.0, step=0.1, key='main_k_bat', on_change=sync_var, args=('main_k_bat', 'sb_k_bat'))
+        harga_impor_baterai = st.number_input("Harga Impor 1 Pack Baterai (Juta Rp)", step=1.0, key='main_h_bat', on_change=sync_var, args=('main_h_bat', 'sb_h_bat'))
         
         # Kalkulasi
         estimasi_baterai_swap = (182.21 + (258.04 - 182.21) * (40/100)) * (target_ev_motor/100) # Asumsi swap 40% tetap untuk perhitungan global baterai
@@ -438,7 +467,7 @@ with st.container(border=True):
     # BARIS 1: Input dan Output PBBKB
     col_in_pbbkb, col_out_pbbkb = st.columns(2)
     with col_in_pbbkb:
-        tarif_pbbkb = st.slider("Tarif PBBKB Daerah (%)", 5, 10, 10)
+        tarif_pbbkb = st.slider("Tarif PBBKB Daerah (%)", 5, 10, key="main_tarif_pbbkb", on_change=sync_var, args=("main_tarif_pbbkb", "sb_tarif_pbbkb"))
     
     loss_pbbkb = (vol_hemat_bensin * 10000 * (tarif_pbbkb / 100)) / 1000
     
@@ -453,8 +482,8 @@ with st.container(border=True):
     
     with col_in_pkb:
         c1, c2 = st.columns(2)
-        pkb_mobil = c1.number_input("Rata-rata PKB Mobil <1400cc (Juta Rp)", value=2.50, min_value=1.85, max_value=3.32, step=0.01)
-        pkb_motor = c2.number_input("Rata-rata PKB Motor (Juta Rp)", value=0.25, min_value=0.10, max_value=0.50, step=0.01)
+        pkb_mobil = c1.number_input("Rata-rata PKB Mobil <1400cc (Juta Rp)", min_value=1.85, max_value=3.32, step=0.01, key="main_pkb_mobil", on_change=sync_var, args=("main_pkb_mobil", "sb_pkb_mobil"))
+        pkb_motor = c2.number_input("Rata-rata PKB Motor (Juta Rp)", min_value=0.10, max_value=0.50, step=0.01, key="main_pkb_motor", on_change=sync_var, args=("main_pkb_motor", "sb_pkb_motor"))
     
     loss_pkb_mobil = (4.46 * (target_ev_mobil / 100)) * pkb_mobil
     loss_pkb_motor = (145.24 * (target_ev_motor / 100)) * pkb_motor
