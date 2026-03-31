@@ -119,7 +119,7 @@ with col_b2:
 
 # HTML CARDS UNTUK BENSIN
 html_cards_1b = f"""<div style="background-color:#f8fafc;padding:25px;border-radius:12px;margin-bottom:20px;border:1px solid #e2e8f0;display:flex;gap:20px;flex-wrap:wrap;"><div style="flex:1;min-width:280px;background:white;padding:20px;border-radius:10px;border-top:4px solid #f59e0b;box-shadow:0 2px 4px rgba(0,0,0,0.05);"><h4 style="color:#b45309;margin-top:0;font-size:17px;">⛽ Neraca Pertalite Nasional</h4><p style="margin:8px 0;color:#334155;font-size:15px;">Total Konsumsi: <b>{vol_total_pertalite:.2f} Jt KL</b></p><p style="margin:8px 0;color:#334155;font-size:15px;">Import Awal: <b>{import_awal:.2f} Jt KL</b></p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:15px 0;"><p style="margin:8px 0;color:#16a34a;font-size:16px;">✅ Bensin Dihemat: <b>{vol_hemat_bensin:.2f} Jt KL</b></p><p style="margin:8px 0;color:#dc2626;font-size:16px;">⚠️ Sisa Import: <b>{sisa_import_bensin:.2f} Jt KL</b></p><p style="margin:20px 0 5px 0;color:#475569;font-size:15px;">Sisa Konsumsi: <b>{sisa_konsumsi:.2f} Jt KL</b></p></div><div style="flex:1;min-width:280px;background:white;padding:20px;border-radius:10px;border-top:4px solid #3b82f6;box-shadow:0 2px 4px rgba(0,0,0,0.05);"><h4 style="color:#1d4ed8;margin-top:0;font-size:17px;">💰 Dampak Ekonomi Nasional</h4><p style="margin:8px 0;color:#334155;font-size:15px;">Hemat Kas Negara: <span style="color:#16a34a;">Rp {hemat_kas_negara:.2f} T</span></p><p style="margin:8px 0;color:#334155;font-size:15px;">Hemat Rakyat: <span style="color:#16a34a;">Rp {hemat_rakyat:.2f} T</span></p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:15px 0;"><p style="margin:8px 0;color:#334155;font-size:15px;">Efek Pengganda (K): <span style="color:#2563eb;">+Rp {efek_pengganda:.2f} T</span></p><p style="margin:2px 0;color:#64748b;font-size:13px;">(porsi +{persen_pdb_bensin:.2f}% terhadap PDB Nominal)</p></div><div style="flex:1;min-width:280px;background:white;padding:20px;border-radius:10px;border-top:4px solid #10b981;box-shadow:0 2px 4px rgba(0,0,0,0.05);"><h4 style="color:#047857;margin-top:0;font-size:17px;">🌾 Kebutuhan Lahan E10</h4><p style="margin:8px 0;color:#64748b;font-size:13px;">(Untuk mem-backup 10% dari sisa konsumsi)</p><p style="margin:15px 0 8px 0;color:#334155;font-size:15px;">Kebutuhan Etanol: <b>{keb_etanol:.2f} Jt KL</b></p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:15px 0;"><p style="margin:8px 0;color:#334155;font-size:15px;">Opsi Tebu: <b>{opsi_tebu:.2f} Jt Ha</b></p><p style="margin:8px 0;color:#334155;font-size:15px;">Opsi Singkong: <b>{opsi_singkong:.2f} Jt Ha</b></p></div></div>"""
-st.markdown(html_cards_1b, unsafe_allow_html=True)
+    st.markdown(html_cards_1b, unsafe_allow_html=True)
 
 # MULTIPLIER EFFECT 
 with st.expander("💡 Dari Mana Angka Hemat Rakyat & Multiplier (PDB) Berasal?", expanded=True):
@@ -184,10 +184,9 @@ with st.container(border=True):
         st.markdown(f"""
         **Alur Simulasi Angka:**
         * **Konversi ke Satuan Barel:** Di pasar global, minyak dihitung dalam Barel. Konstanta konversinya adalah 1 kL setara 6,2898 Barel.
-            * **Total Barel Dicegah:** (Impor Solar {impor_dihemat_solar:.2f} Jt kL + Impor Bensin {vol_hemat_bensin:.2f} Jt kL) × 6,2898 = **{tot_barel:.2f} Juta Barel**.
-        * **Perhitungan Devisa Negara:** {tot_barel:.2f} Juta Barel × Harga Minyak (USD {harga_minyak}/barel) × Kurs (Rp {kurs_rp}/USD) = **Rp {hemat_rp_devisa:.2f} Triliun**.
-        * **Rasio terhadap Defisit:** Rp {hemat_rp_devisa:.2f} T ÷ Target Defisit APBN (Rp 689,1 T) = **{persen_defisit_tot:.2f}%**.
-        * **Rasio terhadap PDB Nominal:** Rp {hemat_rp_devisa:.2f} T ÷ PDB 2025 (Rp 23.821,1 T) = **{persen_pdb_tot:.2f}%**.
+            * Total Solar dan Bensin yang tidak jadi diimpor dikalikan konstanta tersebut, menghasilkan **{tot_barel:.2f} Juta Barel** minyak yang tidak perlu kita beli dari luar negeri.
+        * **Perhitungan Devisa Negara:** {tot_barel:.2f} Juta Barel dikalikan dengan Harga Minyak (USD {harga_minyak}/barel) dan Kurs (Rp {kurs_rp}/USD). Hasilnya adalah nilai Rupiah yang berhasil ditahan di dalam negeri (**Rp {hemat_rp_devisa:.2f} Triliun**).
+        * **Rasio terhadap Defisit:** Uang devisa yang diselamatkan ini dibandingkan dengan proyeksi defisit APBN pemerintah, membuktikan bahwa kebijakan ini bisa menambal celah utang negara secara signifikan.
         """)
 
 st.divider()
@@ -217,8 +216,7 @@ with st.container(border=True):
     with st.expander("💡 Dari Mana Angka Skenario Listrik Berasal?", expanded=True):
         st.markdown(f"""
         **Alur Simulasi Angka:**
-        * **Kebutuhan Listrik Tambahan:** Berasal dari total bensin yang dihemat ({vol_hemat_bensin:.2f} Juta kL atau Miliar Liter) dikalikan dengan faktor konversi **1,2 kWh per liter**. 
-        * **Perhitungan Beban:** {vol_hemat_bensin:.2f} Juta kL × 1,2 = **{kebutuhan_twh:.2f} TWh** per tahun.
+        * **Kebutuhan Listrik Tambahan:** Berasal dari total bensin yang dihemat ({vol_hemat_bensin:.2f} Juta kL atau Miliar Liter) dikalikan dengan faktor konversi 1,2 kWh per liter. Hasilnya adalah beban tambahan **{kebutuhan_twh:.2f} TWh** per tahun.
         * **Surplus Listrik Nasional (Kapasitas Menganggur):** Berdasarkan data PLN, kapasitas produksi listrik nasional adalah 354 TWh, sementara yang terpakai hanya 317,69 TWh. 
         * **Kesimpulan:** Selisihnya menciptakan cadangan tenaga sebesar 354 − 317,69 = **36,31 TWh**, yang jauh lebih besar dari beban baru kendaraan listrik. Tidak perlu membangun pembangkit listrik baru secara mendadak.
         """)
@@ -363,7 +361,6 @@ with st.container(border=True):
     col_in_pkb, col_out_pkb = st.columns(2)
     
     with col_in_pkb:
-        # Membagi kolom input di kiri menjadi 2 lagi untuk Mobil dan Motor agar ringkas
         c1, c2 = st.columns(2)
         pkb_mobil = c1.number_input("Rata-rata PKB Mobil <1400cc (Juta Rp)", value=2.50, min_value=1.85, max_value=3.32, step=0.01)
         pkb_motor = c2.number_input("Rata-rata PKB Motor (Juta Rp)", value=0.25, min_value=0.10, max_value=0.50, step=0.01)
@@ -390,6 +387,56 @@ with st.expander("💡 Dari Mana Angka Loss Pajak Berasal?", expanded=True):
         * Loss dari Motor EV: {total_motor_ev:.2f} Juta Unit × Asumsi Rata-rata PKB (Rp {pkb_motor:.2f} Juta) = **Rp {loss_pkb_motor:.2f} Triliun**.
         * Total Loss PKB = **Rp {loss_pkb_total:.2f} Triliun**.
     """)
+
+st.divider()
+
+# ==========================================
+# 6. ANALISIS ROI & KESIMPULAN
+# ==========================================
+st.header("6️⃣ Kesimpulan & Analisis ROI (Return on Investment)")
+
+# Kalkulasi Variabel Agregat
+total_hemat_kas_negara = hemat_kas_negara + hemat_bersih_solar
+total_modal = total_biaya_subsidi + investasi_spklu
+total_kas_pemda_menguap = loss_pbbkb + loss_pkb_total
+fiskal_net = total_hemat_kas_negara - total_kas_pemda_menguap
+makro_net = hemat_rp_devisa + hemat_rakyat
+roi_persen = (makro_net / total_modal) * 100 if total_modal > 0 else 0
+payback_period = total_modal / makro_net if makro_net > 0 else 0
+
+with st.container(border=True):
+    st.markdown("### 📈 1. Penghematan dari Zero Import (Benefit Tahunan)")
+    st.markdown("Kita lihat dari dua sudut pandang: uang kas APBN (Subsidi) dan perputaran uang internasional (Devisa).")
+    
+    c_b1, c_b2, c_b3 = st.columns(3)
+    c_b1.success(f"**Hemat Subsidi BBM (APBN):**\n* Bensin: Rp {hemat_kas_negara:.2f} T\n* Solar: Rp {hemat_bersih_solar:.2f} T\n* **Total: Rp {total_hemat_kas_negara:.2f} Triliun / tahun**")
+    c_b2.info(f"**Hemat Devisa (Makroekonomi):**\n* Mencegah {tot_barel:.2f} Juta Barel impor.\n* **Total: Rp {hemat_rp_devisa:.2f} Triliun / tahun** (uang tidak lari ke luar negeri)")
+    c_b3.success(f"**Hemat Uang Rakyat:**\n* Biaya Bensin Rp {biaya_bensin_awal:.2f} T dikurangi Biaya Listrik Rp {biaya_listrik:.2f} T.\n* **Total: Rp {hemat_rakyat:.2f} Triliun / tahun**")
+
+    st.divider()
+
+    st.markdown("### 📉 2. Biaya Transisi, Infrastruktur & Kehilangan Pajak (Cost)")
+    st.markdown("Sekarang kita lihat berapa harga yang harus dibayar untuk mengeksekusi 'Zero Import' ini.")
+    
+    c_c1, c_c2 = st.columns(2)
+    c_c1.warning(f"**Biaya Investasi Awal (Capex):**\n* Subsidi Motor: Rp {total_biaya_subsidi:.2f} T\n* Infrastruktur SPKLU: Rp {investasi_spklu:.2f} T\n* **Total Kebutuhan Modal: Rp {total_modal:.2f} Triliun**")
+    c_c2.error(f"**Kehilangan Pendapatan Daerah (Minus Tahunan):**\n* Loss PBBKB: Rp {loss_pbbkb:.2f} T\n* Loss PKB: Rp {loss_pkb_total:.2f} T\n* **Total Kas Pemda Menguap: Rp {total_kas_pemda_menguap:.2f} Triliun / tahun**")
+
+    st.divider()
+
+    st.markdown("### ⚖️ 3. Analisis ROI & Kesimpulan Akhir")
+    st.markdown(f"Jika penghematan *zero import* digunakan untuk membiayai modal **Rp {total_modal:.2f} Triliun**, bagaimana kelayakannya? Di sinilah *plot twist*-nya muncul!")
+    
+    c_r1, c_r2 = st.columns(2)
+    with c_r1:
+        st.error("**A. Perspektif Fiskal Pemerintah (APBN & APBD) = NEGATIF (Tekor)**")
+        st.markdown(f"Secara hitungan kas negara murni, pusat hemat subsidi **Rp {total_hemat_kas_negara:.2f} T**, tapi daerah kehilangan pajak **Rp {total_kas_pemda_menguap:.2f} T**. Secara total *cashflow*, birokrasi pemerintahan berdarah (minus) **Rp {abs(fiskal_net):.2f} Triliun per tahun**.")
+        st.markdown("**Kesimpulan Fiskal:** Negara tidak akan sanggup balik modal kecuali **Tarif Pajak EV segera diadakan** untuk menambal kebangkrutan PAD daerah!")
+        
+    with c_r2:
+        st.success("**B. Perspektif Makroekonomi Nasional = SANGAT MENGUNTUNGKAN!**")
+        st.markdown(f"Melihat ekonomi secara agregat (Pemerintah + Swasta + Rakyat), ceritanya sangat berbeda.")
+        st.markdown(f"* **Total Modal Transisi:** Rp {total_modal:.2f} Triliun.\n* **Keuntungan Nasional Tahunan:** Devisa (Rp {hemat_rp_devisa:.2f} T) + Hemat Rakyat (Rp {hemat_rakyat:.2f} T) = **Rp {makro_net:.2f} Triliun / tahun**.\n* **Return on Investment (ROI):** **{roi_persen:.2f}% per tahun**.\n* **Payback Period:** Rp {total_modal:.2f} T ÷ Rp {makro_net:.2f} T = **{payback_period:.1f} Tahun balik modal!**")
 
 st.divider()
 
