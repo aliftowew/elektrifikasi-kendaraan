@@ -254,14 +254,6 @@ with col_i1:
 - **Jalur Beli Baru:** {vol_baru:.2f} Juta unit""")
         st.success(f"#### 💰 Total Biaya Subsidi Pemerintah:\n#### Rp {total_biaya_subsidi:.2f} Triliun")
 
-    st.divider()
-    
-    with st.container(border=True):
-        st.subheader("Swap Baterai Motor")
-        porsi_swap = st.slider("Pengguna Swap (%)", 0, 100, 40)
-        estimasi_baterai = (182.21 + (258.04 - 182.21) * (porsi_swap/100)) * (target_ev_motor/100)
-        st.warning(f"**Kebutuhan Pack Baterai:**\n### {estimasi_baterai:.2f} Juta Unit")
-
 with col_i2:
     with st.container(border=True):
         st.subheader("Kebutuhan Bengkel & SDM")
@@ -278,7 +270,6 @@ with col_i2:
         pb = porsi_tipe_b / 100
         
         faktor_pembagi = (2 * pa) + pb
-        
         bengkel_tot_min = line_bengkel_min / faktor_pembagi
         bengkel_tot_max = line_bengkel_max / faktor_pembagi
         
@@ -318,7 +309,7 @@ with col_i3:
             p_fast = batas[1] - batas[0]
             p_ultra = 100 - batas[1]
             
-            # Visualisasi Komposisi dengan Horizontal Stacked Bar Plotly
+            # Visualisasi Komposisi
             df_bar = pd.DataFrame({
                 "Tipe": ["Medium", "Fast", "Ultra Fast"],
                 "Porsi (%)": [p_med, p_fast, p_ultra],
@@ -351,7 +342,62 @@ with col_i3:
 **Estimasi Biaya Infrastruktur:**
 ### Rp {investasi_spklu:.2f} Triliun""")
 
-with st.expander("💡 Dari Mana Angka Infrastruktur & Subsidi Berasal?", expanded=True):
+# --- NEW SECTION: RANTAI PASOK / SUPPLY CHAIN ---
+st.divider()
+st.subheader("🏭 Kesiapan Industri & Risiko Kebocoran Impor (*Supply Chain*)")
+with st.container(border=True):
+    st.markdown("Menganalisis kesenjangan (*gap*) antara lonjakan permintaan kendaraan listrik tahunan dengan kapasitas riil pabrik perakitan dan produksi baterai di dalam negeri.")
+    
+    col_sc1, col_sc2 = st.columns(2)
+    
+    # Kolom 1: Supply Chain Motor
+    with col_sc1:
+        st.markdown("#### 🏍️ Produksi Motor Listrik Nasional")
+        kapasitas_motor = st.slider("Kapasitas Pabrik Lokal (Juta Unit/Tahun)", 0.5, 5.0, 1.6, step=0.1)
+        harga_impor_motor = st.number_input("Harga Impor 1 Unit Motor EV (Juta Rp)", value=15.0)
+        
+        # Kalkulasi
+        demand_motor_thn = vol_baru / lama_proyek
+        defisit_motor_thn = max(0, demand_motor_thn - kapasitas_motor)
+        bocor_devisa_motor = (defisit_motor_thn * 1_000_000) * harga_impor_motor / 1_000_000
+        
+        if defisit_motor_thn > 0:
+            st.error(f"""**Kesenjangan Pasokan (Defisit):**
+### {defisit_motor_thn:.2f} Juta Unit / Tahun
+<p style='font-size:13px; color:#555;'>Permintaan {demand_motor_thn:.2f} Juta vs Kapasitas {kapasitas_motor:.2f} Juta</p>
+
+**Potensi Kebocoran Devisa Impor (CBU):**
+### Rp {bocor_devisa_motor:.2f} Triliun / Tahun
+""", unsafe_allow_html=True)
+        else:
+            st.success(f"**Pasokan Aman!**\nKapasitas {kapasitas_motor:.2f} Juta sanggup memenuhi permintaan {demand_motor_thn:.2f} Juta unit/tahun.")
+
+    # Kolom 2: Supply Chain Battery Pack
+    with col_sc2:
+        st.markdown("#### 🔋 Produksi Battery Pack Nasional")
+        kapasitas_baterai = st.slider("Kapasitas Pabrik Baterai Lokal (Juta Unit/Tahun)", 0.5, 10.0, 2.0, step=0.1)
+        harga_impor_baterai = st.number_input("Harga Impor 1 Pack Baterai (Juta Rp)", value=5.0)
+        
+        # Kalkulasi
+        estimasi_baterai_swap = (182.21 + (258.04 - 182.21) * (40/100)) * (target_ev_motor/100) # hardcoded 40% porsi swap for simplification in global demand
+        demand_bat_thn = (total_motor_ev + estimasi_baterai_swap) / lama_proyek
+        defisit_bat_thn = max(0, demand_bat_thn - kapasitas_baterai)
+        bocor_devisa_bat = (defisit_bat_thn * 1_000_000) * harga_impor_baterai / 1_000_000
+        
+        if defisit_bat_thn > 0:
+            st.error(f"""**Kesenjangan Pasokan Baterai (Defisit):**
+### {defisit_bat_thn:.2f} Juta Unit / Tahun
+<p style='font-size:13px; color:#555;'>Permintaan {demand_bat_thn:.2f} Juta vs Kapasitas {kapasitas_baterai:.2f} Juta</p>
+
+**Potensi Kebocoran Devisa Impor Baterai:**
+### Rp {bocor_devisa_bat:.2f} Triliun / Tahun
+""", unsafe_allow_html=True)
+        else:
+            st.success(f"**Pasokan Baterai Aman!**\nKapasitas {kapasitas_baterai:.2f} Juta sanggup memenuhi permintaan tahunan.")
+
+    bocor_devisa_total = bocor_devisa_motor + bocor_devisa_bat
+
+with st.expander("💡 Dari Mana Angka Infrastruktur, Subsidi, dan Rantai Pasok Berasal?", expanded=True):
     st.markdown(f"""
     **Alur Simulasi Angka:**
     * **Jalur Transisi Motor:** Total target motor listrik ({total_motor_ev:.2f} Juta unit) dipecah menjadi Konversi ({porsi_konversi}%) sebesar **{vol_konversi:.2f} Juta unit** dan Beli Baru ({porsi_baru}%) sebesar **{vol_baru:.2f} Juta unit**.
@@ -359,12 +405,8 @@ with st.expander("💡 Dari Mana Angka Infrastruktur & Subsidi Berasal?", expand
         * Subsidi Beli Baru: {vol_baru:.2f} Juta unit × Rp {subsidi_baru} Juta = **Rp {biaya_subsidi_baru:.2f} Triliun**.
         * Total Subsidi: **Rp {total_biaya_subsidi:.2f} Triliun**.
     * **Kebutuhan Bengkel & SDM:** Satu jalur pengerjaan (*line*) mampu menyelesaikan 730 hingga 3.650 motor per tahun. Berdasarkan total motor konversi dan durasi proyek, didapatkan estimasi rentang *line* bengkel. Setiap *line* membutuhkan 2 tenaga kerja terampil (1 Teknisi Perawatan dan 1 Teknisi Instalatur). Selanjutnya, *line* ini didistribusikan ke dalam dua skala bengkel: Tipe A (Kapasitas Besar, 2 *line*) dan Tipe B (Kapasitas Standar, 1 *line*) sesuai proporsi yang ditetapkan.
-    * **Swap Baterai:** Menggunakan rasio pemakaian harian rata-rata pengendara, dikalikan dengan durasi pengisian (*charging rate*), serta ditambah 20% stok *buffer* cadangan untuk mencegah antrean panjang di jam pulang kerja.
+    * **Kesiapan Rantai Pasok (Manufaktur):** Lonjakan permintaan unit baru dan baterai per tahun akan berbenturan dengan kapasitas pabrik lokal. Jika target pemerintah terlalu cepat (misal diselesaikan dalam {lama_proyek} tahun), sedangkan ekspansi pabrik lokal belum siap, maka negara terpaksa melakukan impor utuh (CBU) dari luar negeri, yang justru menciptakan celah kebocoran devisa baru.
     * **Mesin Charging Mobil (SPKLU):** Total {mobil_ev:.2f} Juta mobil listrik dibagi rasio kepadatan ideal ({rasio_spklu}:1) menghasilkan **{kebutuhan_spklu:,.0f} Unit SPKLU**.
-        * Biaya Medium Charger: {unit_med:,.0f} unit × Rp {h_med} Juta.
-        * Biaya Fast Charger: {unit_fast:,.0f} unit × Rp {h_fast} Juta.
-        * Biaya Ultra Fast Charger: {unit_ultra:,.0f} unit × Rp {h_ultra} Juta.
-        * Total Investasi SPKLU: **Rp {investasi_spklu:.2f} Triliun**.
     """)
 
 st.divider()
@@ -378,7 +420,7 @@ with st.container(border=True):
     
     st.markdown("---")
     
-    # BARIS 1: Input dan Output PBBKB disejajarkan
+    # BARIS 1: Input dan Output PBBKB
     col_in_pbbkb, col_out_pbbkb = st.columns(2)
     with col_in_pbbkb:
         tarif_pbbkb = st.slider("Tarif PBBKB Daerah (%)", 5, 10, 10)
@@ -391,7 +433,7 @@ with st.container(border=True):
     
     st.markdown("---")
     
-    # BARIS 2: Input PKB (Mobil & Motor) dan Output Loss PKB disejajarkan
+    # BARIS 2: Input PKB (Mobil & Motor) dan Output Loss PKB
     col_in_pkb, col_out_pkb = st.columns(2)
     
     with col_in_pkb:
@@ -435,7 +477,7 @@ total_hemat_kas_negara = hemat_kas_negara + hemat_bersih_solar
 total_modal = total_biaya_subsidi + investasi_spklu
 total_kas_pemda_menguap = loss_pbbkb + loss_pkb_total
 fiskal_net = total_hemat_kas_negara - total_kas_pemda_menguap
-makro_net = hemat_rp_devisa + hemat_rakyat
+makro_net = (hemat_rp_devisa - bocor_devisa_total) + hemat_rakyat # Dikurangi kebocoran impor CBU/Baterai
 roi_persen = (makro_net / total_modal) * 100 if total_modal > 0 else 0
 payback_period = total_modal / makro_net if makro_net > 0 else 0
 
@@ -445,7 +487,7 @@ with st.container(border=True):
     
     c_b1, c_b2, c_b3 = st.columns(3)
     c_b1.success(f"**Hemat Subsidi BBM (APBN):**\n* Bensin: Rp {hemat_kas_negara:.2f} T\n* Solar: Rp {hemat_bersih_solar:.2f} T\n* **Total: Rp {total_hemat_kas_negara:.2f} Triliun / tahun**")
-    c_b2.info(f"**Hemat Devisa (Makroekonomi):**\n* Mencegah {tot_barel:.2f} Juta Barel impor.\n* **Total: Rp {hemat_rp_devisa:.2f} Triliun / tahun** (Penahanan Devisa)")
+    c_b2.info(f"**Net Devisa Nasional:**\n* Devisa Ditahan: Rp {hemat_rp_devisa:.2f} T\n* Kebocoran Impor EV/Baterai: -Rp {bocor_devisa_total:.2f} T\n* **Netto: Rp {(hemat_rp_devisa - bocor_devisa_total):.2f} Triliun / tahun**")
     c_b3.success(f"**Hemat Uang Masyarakat:**\n* Biaya Bensin Rp {biaya_bensin_awal:.2f} T dikurangi Biaya Listrik Rp {biaya_listrik:.2f} T.\n* **Total: Rp {hemat_rakyat:.2f} Triliun / tahun**")
 
     st.divider()
@@ -471,7 +513,7 @@ with st.container(border=True):
     with c_r2:
         st.success("**B. Perspektif Makroekonomi Nasional = SANGAT POSITIF**")
         st.markdown(f"Namun, jika ditinjau dari kacamata ekonomi agregat (Pemerintah + Swasta + Masyarakat), kebijakan ini memberikan dampak yang sangat masif.")
-        st.markdown(f"* **Total Kebutuhan Investasi Transisi:** Rp {total_modal:.2f} Triliun.\n* **Keuntungan Nasional Tahunan:** Penyelamatan Devisa (Rp {hemat_rp_devisa:.2f} T) + Penghematan Masyarakat (Rp {hemat_rakyat:.2f} T) = **Rp {makro_net:.2f} Triliun / tahun**.\n* **Return on Investment (ROI) Nasional:** **{roi_persen:.2f}% per tahun**.\n* **Payback Period:** Rp {total_modal:.2f} T ÷ Rp {makro_net:.2f} T = **Hanya dalam {payback_period:.1f} Tahun, investasi nasional akan kembali (*Break-Even*)!**")
+        st.markdown(f"* **Total Kebutuhan Investasi Transisi:** Rp {total_modal:.2f} Triliun.\n* **Keuntungan Nasional Tahunan:** Net Penyelamatan Devisa (Rp {(hemat_rp_devisa - bocor_devisa_total):.2f} T) + Penghematan Masyarakat (Rp {hemat_rakyat:.2f} T) = **Rp {makro_net:.2f} Triliun / tahun**.\n* **Return on Investment (ROI) Nasional:** **{roi_persen:.2f}% per tahun**.\n* **Payback Period:** Rp {total_modal:.2f} T ÷ Rp {makro_net:.2f} T = **Hanya dalam {payback_period:.1f} Tahun, investasi nasional akan kembali (*Break-Even*)!**")
 
 st.divider()
 
