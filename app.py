@@ -119,7 +119,7 @@ with col_b2:
 
 # HTML CARDS UNTUK BENSIN
 html_cards_1b = f"""<div style="background-color:#f8fafc;padding:25px;border-radius:12px;margin-bottom:20px;border:1px solid #e2e8f0;display:flex;gap:20px;flex-wrap:wrap;"><div style="flex:1;min-width:280px;background:white;padding:20px;border-radius:10px;border-top:4px solid #f59e0b;box-shadow:0 2px 4px rgba(0,0,0,0.05);"><h4 style="color:#b45309;margin-top:0;font-size:17px;">⛽ Neraca Pertalite Nasional</h4><p style="margin:8px 0;color:#334155;font-size:15px;">Total Konsumsi: <b>{vol_total_pertalite:.2f} Jt KL</b></p><p style="margin:8px 0;color:#334155;font-size:15px;">Import Awal: <b>{import_awal:.2f} Jt KL</b></p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:15px 0;"><p style="margin:8px 0;color:#16a34a;font-size:16px;">✅ Bensin Dihemat: <b>{vol_hemat_bensin:.2f} Jt KL</b></p><p style="margin:8px 0;color:#dc2626;font-size:16px;">⚠️ Sisa Import: <b>{sisa_import_bensin:.2f} Jt KL</b></p><p style="margin:20px 0 5px 0;color:#475569;font-size:15px;">Sisa Konsumsi: <b>{sisa_konsumsi:.2f} Jt KL</b></p></div><div style="flex:1;min-width:280px;background:white;padding:20px;border-radius:10px;border-top:4px solid #3b82f6;box-shadow:0 2px 4px rgba(0,0,0,0.05);"><h4 style="color:#1d4ed8;margin-top:0;font-size:17px;">💰 Dampak Ekonomi Nasional</h4><p style="margin:8px 0;color:#334155;font-size:15px;">Hemat Kas Negara: <span style="color:#16a34a;">Rp {hemat_kas_negara:.2f} T</span></p><p style="margin:8px 0;color:#334155;font-size:15px;">Hemat Rakyat: <span style="color:#16a34a;">Rp {hemat_rakyat:.2f} T</span></p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:15px 0;"><p style="margin:8px 0;color:#334155;font-size:15px;">Efek Pengganda (K): <span style="color:#2563eb;">+Rp {efek_pengganda:.2f} T</span></p><p style="margin:2px 0;color:#64748b;font-size:13px;">(porsi +{persen_pdb_bensin:.2f}% terhadap PDB Nominal)</p></div><div style="flex:1;min-width:280px;background:white;padding:20px;border-radius:10px;border-top:4px solid #10b981;box-shadow:0 2px 4px rgba(0,0,0,0.05);"><h4 style="color:#047857;margin-top:0;font-size:17px;">🌾 Kebutuhan Lahan E10</h4><p style="margin:8px 0;color:#64748b;font-size:13px;">(Untuk mem-backup 10% dari sisa konsumsi)</p><p style="margin:15px 0 8px 0;color:#334155;font-size:15px;">Kebutuhan Etanol: <b>{keb_etanol:.2f} Jt KL</b></p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:15px 0;"><p style="margin:8px 0;color:#334155;font-size:15px;">Opsi Tebu: <b>{opsi_tebu:.2f} Jt Ha</b></p><p style="margin:8px 0;color:#334155;font-size:15px;">Opsi Singkong: <b>{opsi_singkong:.2f} Jt Ha</b></p></div></div>"""
-st.markdown(html_cards_1b, unsafe_allow_html=True)
+    st.markdown(html_cards_1b, unsafe_allow_html=True)
 
 # MULTIPLIER EFFECT 
 with st.expander("💡 Dari Mana Angka Hemat Rakyat & Multiplier (PDB) Berasal?", expanded=True):
@@ -240,7 +240,7 @@ with col_i1:
         subsidi_konv = col_s1.number_input("Subsidi Konversi (Juta Rp)", value=10.0, step=1.0)
         subsidi_baru = col_s2.number_input("Subsidi Unit Baru (Juta Rp)", value=7.0, step=1.0)
         
-        # Kalkulasi
+        # Kalkulasi Total Unit
         total_motor_ev = 145.24 * (target_ev_motor / 100)
         vol_konversi = total_motor_ev * (porsi_konversi / 100)
         vol_baru = total_motor_ev * (porsi_baru / 100)
@@ -256,17 +256,46 @@ with col_i1:
 
 with col_i2:
     with st.container(border=True):
-        st.subheader("Kebutuhan Bengkel & Swap Baterai")
-        # Parameter Bengkel
+        st.subheader("Kebutuhan Bengkel & SDM")
         lama_proyek = st.slider("Lama Pengerjaan Proyek (Tahun)", 1, 10, 4)
         
+        # Kapasitas 1 Line = 730 hingga 3650 motor per tahun
         line_bengkel_min = (vol_konversi * 1_000_000) / (3650 * lama_proyek)
         line_bengkel_max = (vol_konversi * 1_000_000) / (730 * lama_proyek)
         
-        st.warning(f"**Kebutuhan Line Bengkel:**\n### {line_bengkel_min:,.0f} - {line_bengkel_max:,.0f} Line")
-        st.divider()
+        porsi_tipe_a = st.slider("Porsi Bengkel Tipe A (%)", 0, 100, 16)
+        porsi_tipe_b = 100 - porsi_tipe_a
         
-        # Swap Baterai
+        pa = porsi_tipe_a / 100
+        pb = porsi_tipe_b / 100
+        
+        # W = L / (2*pa + 1*pb)
+        faktor_pembagi = (2 * pa) + pb
+        
+        bengkel_tot_min = line_bengkel_min / faktor_pembagi
+        bengkel_tot_max = line_bengkel_max / faktor_pembagi
+        
+        bengkel_a_min = bengkel_tot_min * pa
+        bengkel_a_max = bengkel_tot_max * pa
+        bengkel_b_min = bengkel_tot_min * pb
+        bengkel_b_max = bengkel_tot_max * pb
+        
+        sdm_min = line_bengkel_min * 2
+        sdm_max = line_bengkel_max * 2
+
+        st.warning(f"""**Kebutuhan Infrastruktur Bengkel:**
+### {line_bengkel_min:,.0f} - {line_bengkel_max:,.0f} Line
+<p style='font-size:13px; color:#555;'>👤 <b>Kebutuhan SDM:</b> {sdm_min:,.0f} - {sdm_max:,.0f} Teknisi<br>
+<i>(1 Perawatan & 1 Instalatur per line)</i></p>
+""", unsafe_allow_html=True)
+        
+        st.info(f"""**Distribusi Tipe Bengkel:**
+* **Tipe A (2 Line):** {bengkel_a_min:,.0f} - {bengkel_a_max:,.0f} Unit ({porsi_tipe_a}%)
+* **Tipe B (1 Line):** {bengkel_b_min:,.0f} - {bengkel_b_max:,.0f} Unit ({porsi_tipe_b}%)
+""")
+        
+        st.divider()
+        st.subheader("Swap Baterai Motor")
         porsi_swap = st.slider("Pengguna Swap (%)", 0, 100, 40)
         estimasi_baterai = (182.21 + (258.04 - 182.21) * (porsi_swap/100)) * (target_ev_motor/100)
         st.warning(f"**Kebutuhan Pack Baterai:**\n### {estimasi_baterai:.2f} Juta Unit")
@@ -327,9 +356,7 @@ with st.expander("💡 Dari Mana Angka Infrastruktur & Subsidi Berasal?", expand
     * **Biaya Subsidi Pemerintah:** * Subsidi Konversi: {vol_konversi:.2f} Juta unit × Rp {subsidi_konv} Juta = **Rp {biaya_subsidi_konv:.2f} Triliun**.
         * Subsidi Beli Baru: {vol_baru:.2f} Juta unit × Rp {subsidi_baru} Juta = **Rp {biaya_subsidi_baru:.2f} Triliun**.
         * Total Subsidi: **Rp {total_biaya_subsidi:.2f} Triliun**.
-    * **Kebutuhan Line Bengkel:** * Satu jalur pengerjaan (*line*) mampu menyelesaikan 730 hingga 3.650 motor per tahun.
-        * Untuk menyelesaikan {vol_konversi:.2f} Juta motor konversi dalam proyek **{lama_proyek} tahun**, kita membagi total motor dengan kapasitas tersebut.
-        * Hasilnya adalah rentang kebutuhan pembukaan **{line_bengkel_min:,.0f} hingga {line_bengkel_max:,.0f} Line Bengkel** di seluruh Indonesia.
+    * **Kebutuhan Bengkel & SDM:** Satu jalur pengerjaan (*line*) mampu menyelesaikan 730 hingga 3.650 motor per tahun. Berdasarkan total motor konversi dan durasi proyek, didapatkan estimasi rentang *line* bengkel. Setiap *line* membutuhkan 2 tenaga kerja terampil (1 Teknisi Perawatan dan 1 Teknisi Instalatur). Selanjutnya, *line* ini didistribusikan ke dalam dua skala bengkel: Tipe A (Kapasitas Besar, 2 *line*) dan Tipe B (Kapasitas Standar, 1 *line*) sesuai proporsi yang ditetapkan.
     * **Swap Baterai:** Menggunakan rasio pemakaian harian rata-rata pengendara, dikalikan dengan durasi pengisian (*charging rate*), serta ditambah 20% stok *buffer* cadangan untuk mencegah antrean panjang di jam pulang kerja.
     * **Mesin Charging Mobil (SPKLU):** Total {mobil_ev:.2f} Juta mobil listrik dibagi rasio kepadatan ideal ({rasio_spklu}:1) menghasilkan **{kebutuhan_spklu:,.0f} Unit SPKLU**.
         * Biaya Medium Charger: {unit_med:,.0f} unit × Rp {h_med} Juta.
@@ -412,37 +439,37 @@ payback_period = total_modal / makro_net if makro_net > 0 else 0
 
 with st.container(border=True):
     st.markdown("### 📈 1. Penghematan dari Zero Import (Benefit Tahunan)")
-    st.markdown("Kita lihat dari dua sudut pandang: uang kas APBN (Subsidi) dan perputaran uang internasional (Devisa).")
+    st.markdown("Analisis dari perspektif kas negara (Subsidi APBN) dan perputaran uang internasional (Devisa).")
     
     c_b1, c_b2, c_b3 = st.columns(3)
     c_b1.success(f"**Hemat Subsidi BBM (APBN):**\n* Bensin: Rp {hemat_kas_negara:.2f} T\n* Solar: Rp {hemat_bersih_solar:.2f} T\n* **Total: Rp {total_hemat_kas_negara:.2f} Triliun / tahun**")
-    c_b2.info(f"**Hemat Devisa (Makroekonomi):**\n* Mencegah {tot_barel:.2f} Juta Barel impor.\n* **Total: Rp {hemat_rp_devisa:.2f} Triliun / tahun** (uang tidak lari ke luar negeri)")
-    c_b3.success(f"**Hemat Uang Rakyat:**\n* Biaya Bensin Rp {biaya_bensin_awal:.2f} T dikurangi Biaya Listrik Rp {biaya_listrik:.2f} T.\n* **Total: Rp {hemat_rakyat:.2f} Triliun / tahun**")
+    c_b2.info(f"**Hemat Devisa (Makroekonomi):**\n* Mencegah {tot_barel:.2f} Juta Barel impor.\n* **Total: Rp {hemat_rp_devisa:.2f} Triliun / tahun** (Penahanan Devisa)")
+    c_b3.success(f"**Hemat Uang Masyarakat:**\n* Biaya Bensin Rp {biaya_bensin_awal:.2f} T dikurangi Biaya Listrik Rp {biaya_listrik:.2f} T.\n* **Total: Rp {hemat_rakyat:.2f} Triliun / tahun**")
 
     st.divider()
 
-    st.markdown("### 📉 2. Biaya Transisi, Infrastruktur & Kehilangan Pajak (Cost)")
-    st.markdown("Sekarang kita lihat berapa harga yang harus dibayar untuk mengeksekusi 'Zero Import' ini.")
+    st.markdown("### 📉 2. Kebutuhan Investasi & Risiko Fiskal (Cost)")
+    st.markdown("Estimasi alokasi modal dan potensi risiko pada Pendapatan Asli Daerah (PAD).")
     
     c_c1, c_c2 = st.columns(2)
-    c_c1.warning(f"**Biaya Investasi Awal (Capex):**\n* Subsidi Motor: Rp {total_biaya_subsidi:.2f} T\n* Infrastruktur SPKLU: Rp {investasi_spklu:.2f} T\n* **Total Kebutuhan Modal: Rp {total_modal:.2f} Triliun**")
-    c_c2.error(f"**Kehilangan Pendapatan Daerah (Minus Tahunan):**\n* Loss PBBKB: Rp {loss_pbbkb:.2f} T\n* Loss PKB: Rp {loss_pkb_total:.2f} T\n* **Total Kas Pemda Menguap: Rp {total_kas_pemda_menguap:.2f} Triliun / tahun**")
+    c_c1.warning(f"**Kebutuhan Investasi Awal (Capex):**\n* Subsidi Kendaraan: Rp {total_biaya_subsidi:.2f} T\n* Infrastruktur SPKLU: Rp {investasi_spklu:.2f} T\n* **Total Kebutuhan Modal: Rp {total_modal:.2f} Triliun**")
+    c_c2.error(f"**Potensi Kontraksi PAD (Minus Tahunan):**\n* Loss PBBKB: Rp {loss_pbbkb:.2f} T\n* Loss PKB: Rp {loss_pkb_total:.2f} T\n* **Total Penurunan Kas Pemda: Rp {total_kas_pemda_menguap:.2f} Triliun / tahun**")
 
     st.divider()
 
-    st.markdown("### ⚖️ 3. Analisis ROI & Kesimpulan Akhir")
-    st.markdown(f"Jika penghematan *zero import* digunakan untuk membiayai modal **Rp {total_modal:.2f} Triliun**, bagaimana kelayakannya? Di sinilah *plot twist*-nya muncul!")
+    st.markdown("### ⚖️ 3. Analisis Kelayakan & Rekomendasi Kebijakan")
+    st.markdown(f"Apabila penghematan devisa dari kebijakan *zero import* dialokasikan untuk membiayai kebutuhan investasi sebesar **Rp {total_modal:.2f} Triliun**, bagaimana tingkat kelayakannya? Analisis berikut menunjukkan anomali signifikan antara dampak fiskal dan makroekonomi yang patut menjadi atensi.")
     
     c_r1, c_r2 = st.columns(2)
     with c_r1:
-        st.error("**A. Perspektif Fiskal Pemerintah (APBN & APBD) = NEGATIF (Tekor)**")
-        st.markdown(f"Secara hitungan kas negara murni, pusat hemat subsidi **Rp {total_hemat_kas_negara:.2f} T**, tapi daerah kehilangan pajak **Rp {total_kas_pemda_menguap:.2f} T**. Secara total *cashflow*, birokrasi pemerintahan berdarah (minus) **Rp {abs(fiskal_net):.2f} Triliun per tahun**.")
-        st.markdown("**Kesimpulan Fiskal:** Negara tidak akan sanggup balik modal kecuali **Tarif Pajak EV segera diadakan** untuk menambal kebangkrutan PAD daerah!")
+        st.error("**A. Perspektif Fiskal Pemerintah (APBN & APBD) = DEFISIT**")
+        st.markdown(f"Secara kalkulasi kas negara murni, pemerintah pusat menghemat subsidi **Rp {total_hemat_kas_negara:.2f} T**, namun pemerintah daerah berpotensi kehilangan pajak **Rp {total_kas_pemda_menguap:.2f} T**. Secara agregat, arus kas (*cashflow*) birokrasi pemerintahan akan mengalami kontraksi sebesar **Rp {abs(fiskal_net):.2f} Triliun per tahun**.")
+        st.markdown("**Rekomendasi Fiskal:** Negara akan kesulitan mencapai titik impas (*break-even*) kecuali **Pajak Kendaraan Khusus Listrik segera diberlakukan** untuk mengkompensasi tergerusnya Pendapatan Asli Daerah (PAD).")
         
     with c_r2:
-        st.success("**B. Perspektif Makroekonomi Nasional = SANGAT MENGUNTUNGKAN!**")
-        st.markdown(f"Melihat ekonomi secara agregat (Pemerintah + Swasta + Rakyat), ceritanya sangat berbeda.")
-        st.markdown(f"* **Total Modal Transisi:** Rp {total_modal:.2f} Triliun.\n* **Keuntungan Nasional Tahunan:** Devisa (Rp {hemat_rp_devisa:.2f} T) + Hemat Rakyat (Rp {hemat_rakyat:.2f} T) = **Rp {makro_net:.2f} Triliun / tahun**.\n* **Return on Investment (ROI):** **{roi_persen:.2f}% per tahun**.\n* **Payback Period:** Rp {total_modal:.2f} T ÷ Rp {makro_net:.2f} T = **{payback_period:.1f} Tahun balik modal!**")
+        st.success("**B. Perspektif Makroekonomi Nasional = SANGAT POSITIF**")
+        st.markdown(f"Namun, jika ditinjau dari kacamata ekonomi agregat (Pemerintah + Swasta + Masyarakat), kebijakan ini memberikan dampak yang sangat masif.")
+        st.markdown(f"* **Total Kebutuhan Investasi Transisi:** Rp {total_modal:.2f} Triliun.\n* **Keuntungan Nasional Tahunan:** Penyelamatan Devisa (Rp {hemat_rp_devisa:.2f} T) + Penghematan Masyarakat (Rp {hemat_rakyat:.2f} T) = **Rp {makro_net:.2f} Triliun / tahun**.\n* **Return on Investment (ROI) Nasional:** **{roi_persen:.2f}% per tahun**.\n* **Payback Period:** Rp {total_modal:.2f} T ÷ Rp {makro_net:.2f} T = **Hanya dalam {payback_period:.1f} Tahun, investasi nasional akan kembali (*Break-Even*)!**")
 
 st.divider()
 
