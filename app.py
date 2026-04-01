@@ -294,13 +294,12 @@ with col_i1:
         biaya_subsidi_konv = vol_konversi * subsidi_konv
         biaya_subsidi_baru = vol_baru * subsidi_baru
         total_biaya_subsidi = biaya_subsidi_konv + biaya_subsidi_baru
+        subsidi_per_tahun = total_biaya_subsidi / lama_proyek
         
         st.warning(f"""**Volume Target EV Motor:** {total_motor_ev:.2f} Juta Unit
 - **Jalur Konversi:** {vol_konversi:.2f} Juta unit
 - **Jalur Beli Baru:** {vol_baru:.2f} Juta unit""")
-        st.success(f"#### 💰 Total Biaya Subsidi Pemerintah:\n#### Rp {total_biaya_subsidi:.2f} Triliun")
-
-    st.divider()
+        st.success(f"#### 💰 Total Biaya Subsidi:\n#### Rp {total_biaya_subsidi:.2f} Triliun\n*(Beban APBN: Rp {subsidi_per_tahun:.2f} T / tahun)*")
     
     with st.container(border=True):
         st.subheader("Swap Baterai Motor")
