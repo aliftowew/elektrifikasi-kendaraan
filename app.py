@@ -488,7 +488,7 @@ with st.container(border=True):
     
     loss_pkb_mobil = (4.46 * (target_ev_mobil / 100)) * pkb_mobil
     loss_pkb_motor = (145.24 * (target_ev_motor / 100)) * pkb_motor
-    loss_pkb_total = loss_pkb_mobil + loss_pkb_total
+    loss_pkb_total = loss_pkb_mobil + loss_pkb_motor
     
     with col_out_pkb:
         st.error(f"""#### 📉 Potensi Loss PKB & SWDKLLJ:
