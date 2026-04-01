@@ -55,7 +55,7 @@ with st.sidebar:
         st.slider("Lama Proyek (Thn)", 1, 10, key="sb_lama_proyek", on_change=sync_var, args=("sb_lama_proyek", "main_lama_proyek"))
         st.slider("Porsi Bengkel A (%)", 0, 100, key="sb_porsi_tipe_a", on_change=sync_var, args=("sb_porsi_tipe_a", "main_porsi_tipe_a"))
         st.slider("Pengguna Swap (%)", 0, 100, key="sb_porsi_swap", on_change=sync_var, args=("sb_porsi_swap", "main_porsi_swap"))
-        st.number_input("Rasio Mobil:SPKLU", key="sb_rasio_spklu", on_change=sync_var, args=("sb_rasio_spklu", "main_rasio_spklu"))
+        st.number_input("Rasio Mobil:SPKLU", min_value=1, key="sb_rasio_spklu", on_change=sync_var, args=("sb_rasio_spklu", "main_rasio_spklu"))
         st.slider("Porsi Mesin (%)", 0, 100, key="sb_batas_spklu", on_change=sync_var, args=("sb_batas_spklu", "main_batas_spklu"))
         st.number_input("Harga Med (Jt)", key="sb_h_med", on_change=sync_var, args=("sb_h_med", "main_h_med"))
         st.number_input("Harga Fast (Jt)", key="sb_h_fast", on_change=sync_var, args=("sb_h_fast", "main_h_fast"))
@@ -286,7 +286,7 @@ with col_i1:
         subsidi_konv = col_s1.number_input("Subsidi Konversi (Juta Rp)", step=1.0, key="main_sub_konv", on_change=sync_var, args=("main_sub_konv", "sb_sub_konv"))
         subsidi_baru = col_s2.number_input("Subsidi Unit Baru (Juta Rp)", step=1.0, key="main_sub_baru", on_change=sync_var, args=("main_sub_baru", "sb_sub_baru"))
         
-        # Kalkulasi
+        # Kalkulasi Total Unit
         total_motor_ev = 145.24 * (target_ev_motor / 100)
         vol_konversi = total_motor_ev * (porsi_konversi / 100)
         vol_baru = total_motor_ev * (porsi_baru / 100)
@@ -295,14 +295,15 @@ with col_i1:
         biaya_subsidi_baru = vol_baru * subsidi_baru
         total_biaya_subsidi = biaya_subsidi_konv + biaya_subsidi_baru
         
-        # Panggil dari memori session_state karena slidernya ada di kolom 2
-        subsidi_per_tahun = total_biaya_subsidi / st.session_state.main_lama_proyek
+        # Ambil nilai lama_proyek dari session_state agar aman dari error NameError urutan render
+        lama_proyek_val = st.session_state.sb_lama_proyek 
+        subsidi_per_tahun = total_biaya_subsidi / lama_proyek_val
         
         st.warning(f"""**Volume Target EV Motor:** {total_motor_ev:.2f} Juta Unit
 - **Jalur Konversi:** {vol_konversi:.2f} Juta unit
 - **Jalur Beli Baru:** {vol_baru:.2f} Juta unit""")
-        st.success(f"#### 💰 Total Biaya Subsidi Pemerintah:\n#### Rp {total_biaya_subsidi:.2f} Triliun\n*(Beban APBN: Rp {subsidi_per_tahun:.2f} T / tahun)*")
-    
+        st.success(f"#### 💰 Total Biaya Subsidi:\n#### Rp {total_biaya_subsidi:.2f} Triliun\n*(Beban APBN: Rp {subsidi_per_tahun:.2f} T / tahun)*")
+
     with st.container(border=True):
         st.subheader("Swap Baterai Motor")
         porsi_swap = st.slider("Pengguna Swap (%)", 0, 100, key="main_porsi_swap", on_change=sync_var, args=("main_porsi_swap", "sb_porsi_swap"))
@@ -352,7 +353,8 @@ with col_i3:
     with st.container(border=True):
         st.subheader("Mesin Charging Mobil (SPKLU)")
         mobil_ev = 4.46 * (target_ev_mobil / 100)
-        rasio_spklu = st.number_input("Rasio Mobil : 1 SPKLU", key="main_rasio_spklu", on_change=sync_var, args=("main_rasio_spklu", "sb_rasio_spklu"))
+        # Menambahkan min_value=1 agar tidak memicu ZeroDivisionError jika dikosongkan
+        rasio_spklu = st.number_input("Rasio Mobil : 1 SPKLU", min_value=1, key="main_rasio_spklu", on_change=sync_var, args=("main_rasio_spklu", "sb_rasio_spklu"))
         kebutuhan_spklu = (mobil_ev * 1_000_000) / rasio_spklu
         
         with st.expander("⚙️ Atur Komposisi & Harga Mesin", expanded=True):
@@ -429,8 +431,7 @@ with st.container(border=True):
         harga_impor_baterai = st.number_input("Harga Impor 1 Pack Baterai (Juta Rp)", step=1.0, key='main_h_bat', on_change=sync_var, args=('main_h_bat', 'sb_h_bat'))
         
         # Kalkulasi
-        estimasi_baterai_swap = (182.21 + (258.04 - 182.21) * (porsi_swap/100)) * (target_ev_motor/100)
-        demand_bat_thn = (total_motor_ev + estimasi_baterai_swap) / lama_proyek
+        demand_bat_thn = (total_motor_ev + estimasi_baterai_awal) / lama_proyek
         defisit_bat_thn = max(0, demand_bat_thn - kapasitas_baterai)
         bocor_devisa_bat = defisit_bat_thn * harga_impor_baterai
         
@@ -452,7 +453,7 @@ with st.expander("💡 Dari Mana Angka Infrastruktur, Subsidi, dan Rantai Pasok 
     * **Total Kebutuhan Baterai & Rantai Pasok:** Dihitung dari 2 komponen utama:
         1. **Baterai Bawaan (1 Unit/Motor):** Sebesar **{total_motor_ev:.2f} Juta unit**.
         2. **Baterai Cadangan (Ekosistem Swap):** Membutuhkan rasio ekstra agar tidak ada antrean. Dengan asumsi {porsi_swap}% pengguna swap, dibutuhkan total cadangan yang terus berputar hingga **{estimasi_baterai_awal:.2f} Juta unit**.
-    * **Risiko Kebocoran Devisa:** Total kebutuhan motor dan baterai tersebut dibagi **durasi penyelesaian proyek ({lama_proyek} Tahun)**. Angka permintaan tahunan ini disandingkan dengan kapasitas pabrik lokal. Jika defisit, negara terpaksa melakukan impor utuh (CBU), yang justru memicu kebocoran devisa baru.
+        * **Risiko Kebocoran Devisa:** Total kebutuhan motor dan baterai tersebut dibagi **durasi penyelesaian proyek ({lama_proyek} Tahun)**. Angka permintaan tahunan ini disandingkan dengan kapasitas pabrik lokal. Jika defisit, negara terpaksa melakukan impor utuh (CBU), yang justru memicu kebocoran devisa baru.
     """)
 
 st.divider()
