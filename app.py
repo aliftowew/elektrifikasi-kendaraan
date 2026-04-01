@@ -286,7 +286,7 @@ with col_i1:
         subsidi_konv = col_s1.number_input("Subsidi Konversi (Juta Rp)", step=1.0, key="main_sub_konv", on_change=sync_var, args=("main_sub_konv", "sb_sub_konv"))
         subsidi_baru = col_s2.number_input("Subsidi Unit Baru (Juta Rp)", step=1.0, key="main_sub_baru", on_change=sync_var, args=("main_sub_baru", "sb_sub_baru"))
         
-        # Kalkulasi Total Unit
+        # Kalkulasi
         total_motor_ev = 145.24 * (target_ev_motor / 100)
         vol_konversi = total_motor_ev * (porsi_konversi / 100)
         vol_baru = total_motor_ev * (porsi_baru / 100)
@@ -294,12 +294,14 @@ with col_i1:
         biaya_subsidi_konv = vol_konversi * subsidi_konv
         biaya_subsidi_baru = vol_baru * subsidi_baru
         total_biaya_subsidi = biaya_subsidi_konv + biaya_subsidi_baru
-        subsidi_per_tahun = total_biaya_subsidi / lama_proyek
+        
+        # Panggil dari memori session_state karena slidernya ada di kolom 2
+        subsidi_per_tahun = total_biaya_subsidi / st.session_state.main_lama_proyek
         
         st.warning(f"""**Volume Target EV Motor:** {total_motor_ev:.2f} Juta Unit
 - **Jalur Konversi:** {vol_konversi:.2f} Juta unit
 - **Jalur Beli Baru:** {vol_baru:.2f} Juta unit""")
-        st.success(f"#### 💰 Total Biaya Subsidi:\n#### Rp {total_biaya_subsidi:.2f} Triliun\n*(Beban APBN: Rp {subsidi_per_tahun:.2f} T / tahun)*")
+        st.success(f"#### 💰 Total Biaya Subsidi Pemerintah:\n#### Rp {total_biaya_subsidi:.2f} Triliun\n*(Beban APBN: Rp {subsidi_per_tahun:.2f} T / tahun)*")
     
     with st.container(border=True):
         st.subheader("Swap Baterai Motor")
