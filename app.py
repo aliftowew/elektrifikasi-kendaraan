@@ -299,6 +299,8 @@ with col_i1:
 - **Jalur Konversi:** {vol_konversi:.2f} Juta unit
 - **Jalur Beli Baru:** {vol_baru:.2f} Juta unit""")
         st.success(f"#### 💰 Total Biaya Subsidi Pemerintah:\n#### Rp {total_biaya_subsidi:.2f} Triliun")
+
+    st.divider()
     
     with st.container(border=True):
         st.subheader("Swap Baterai Motor")
@@ -426,8 +428,7 @@ with st.container(border=True):
         harga_impor_baterai = st.number_input("Harga Impor 1 Pack Baterai (Juta Rp)", step=1.0, key='main_h_bat', on_change=sync_var, args=('main_h_bat', 'sb_h_bat'))
         
         # Kalkulasi
-        estimasi_baterai_swap = (182.21 + (258.04 - 182.21) * (40/100)) * (target_ev_motor/100) # Asumsi swap 40% tetap untuk perhitungan global baterai
-        demand_bat_thn = (total_motor_ev + estimasi_baterai_swap) / lama_proyek
+        demand_bat_thn = (total_motor_ev + estimasi_baterai_awal) / lama_proyek
         defisit_bat_thn = max(0, demand_bat_thn - kapasitas_baterai)
         bocor_devisa_bat = defisit_bat_thn * harga_impor_baterai
         
@@ -447,8 +448,11 @@ with st.expander("💡 Dari Mana Angka Infrastruktur, Subsidi, dan Rantai Pasok 
         * Subsidi Beli Baru: {vol_baru:.2f} Juta unit × Rp {subsidi_baru} Juta = **Rp {biaya_subsidi_baru:.2f} Triliun**.
         * Total Subsidi: **Rp {total_biaya_subsidi:.2f} Triliun**.
     * **Kebutuhan Bengkel & SDM:** Satu jalur pengerjaan (*line*) mampu menyelesaikan 730 hingga 3.650 motor per tahun. Berdasarkan total motor konversi dan durasi proyek, didapatkan estimasi rentang *line* bengkel. Setiap *line* membutuhkan 2 tenaga kerja terampil (1 Teknisi Perawatan dan 1 Teknisi Instalatur). Selanjutnya, *line* ini didistribusikan ke dalam dua skala bengkel: Tipe A (Kapasitas Besar, 2 *line*) dan Tipe B (Kapasitas Standar, 1 *line*) sesuai proporsi yang ditetapkan.
-    * **Kesiapan Rantai Pasok (Manufaktur):** Lonjakan permintaan unit baru dan baterai per tahun akan berbenturan dengan kapasitas pabrik lokal. Jika target pemerintah terlalu cepat (misal diselesaikan dalam {lama_proyek} tahun), sedangkan ekspansi pabrik lokal belum siap, maka negara terpaksa melakukan impor utuh (CBU) dari luar negeri, yang justru menciptakan celah kebocoran devisa baru.
     * **Mesin Charging Mobil (SPKLU):** Total {mobil_ev:.2f} Juta mobil listrik dibagi rasio kepadatan ideal ({rasio_spklu}:1) menghasilkan **{kebutuhan_spklu:,.0f} Unit SPKLU**.
+    * **Kebutuhan Total & Rantai Pasok Baterai:** Angka total permintaan baterai fisik berasal dari dua komponen utama:
+        1. **Baterai Bawaan Motor:** Setiap motor yang mengaspal membutuhkan minimal 1 baterai utama (Mewakili **{total_motor_ev:.2f} Juta unit**).
+        2. **Baterai Cadangan (Ekosistem Swap):** Berdasarkan rasio pengguna swap, frekuensi pemakaian harian, dan tambahan *buffer* stok 20% di kabinet SPBKLU agar tidak terjadi antrean, dibutuhkan jutaan baterai ekstra yang terus berputar (Mewakili **{estimasi_baterai_awal:.2f} Juta unit**).
+        * **Lonjakan Permintaan Tahunan:** Total gabungan baterai fisik tersebut kemudian **dibagi dengan durasi penyelesaian proyek ({lama_proyek} Tahun)**. Angka inilah yang dihadapkan dengan kapasitas riil pabrik domestik. Jika pabrik lokal belum siap, terjadilah defisit yang memicu impor utuh dan kebocoran devisa.
     """)
 
 st.divider()
