@@ -19,13 +19,15 @@ st.markdown("""
 def sync_var(source_key, target_key):
     st.session_state[target_key] = st.session_state[source_key]
 
+# 1. UPDATE DEFAULT VALUE: Tambah variabel subsidi, gap fame, dan durasi konversi
 defaults = {
     'porsi_konv': 70, 'sub_konv': 10.0, 'sub_baru': 7.0,
     'lama_proyek': 4, 'porsi_tipe_a': 16, 'porsi_swap': 40,
     'rasio_spklu': 15, 'batas_spklu': (55, 83),
     'h_med': 150, 'h_fast': 350, 'h_ultra': 500,
     'k_motor': 1.6, 'h_motor': 15.0, 'k_bat': 2.0, 'h_bat': 5.0,
-    'tarif_pbbkb': 10, 'pkb_mobil': 2.50, 'pkb_motor': 0.25
+    'tarif_pbbkb': 10, 'pkb_mobil': 2.50, 'pkb_motor': 0.25,
+    'durasi_konv': (45, 60) # Range dalam menit
 }
 
 for k, v in defaults.items():
@@ -42,14 +44,23 @@ with st.sidebar:
     target_ev_mobil = st.slider("🚗 Target EV Mobil <1400cc (%)", 0, 100, 100, step=5)
     target_fame = st.slider("🌱 Komposisi FAME (Biosolar) (%)", 30, 80, 50, step=5)
     st.divider()
+    
+    st.markdown("**Variabel Harga & Subsidi:**")
     harga_minyak = st.number_input("🛢️ Harga Minyak Dunia ($/bbl)", value=106.0, step=1.0)
     kurs_rp = st.number_input("💱 Kurs Rupiah (Rp/USD)", value=17019, step=100)
+    
+    # 2. INPUT VARIABEL SUBSIDI DINAMIS
+    sub_solar = st.number_input("Subsidi Solar (Rp/Liter)", value=5250, step=50)
+    sub_pertalite = st.number_input("Subsidi Pertalite (Rp/Liter)", value=1700, step=50)
+    gap_fame = st.number_input("Selisih Harga FAME (Rp/Liter)", value=3000, step=50)
     
     st.divider()
     st.header("🎛️ Navigasi Detail")
     
     with st.expander("🛠️ Subsidi & Infrastruktur", expanded=False):
         st.slider("Porsi Konversi (%)", 0, 100, key="sb_porsi_konv", on_change=sync_var, args=("sb_porsi_konv", "main_porsi_konv"))
+        # Menambahkan slider sinkronisasi durasi konversi
+        st.slider("Durasi Konversi (Menit)", 10, 120, key="sb_durasi_konv", on_change=sync_var, args=("sb_durasi_konv", "main_durasi_konv"))
         st.number_input("Sub. Konversi (Jt)", step=1.0, key="sb_sub_konv", on_change=sync_var, args=("sb_sub_konv", "main_sub_konv"))
         st.number_input("Sub. Baru (Jt)", step=1.0, key="sb_sub_baru", on_change=sync_var, args=("sb_sub_baru", "main_sub_baru"))
         st.slider("Lama Proyek (Thn)", 1, 10, key="sb_lama_proyek", on_change=sync_var, args=("sb_lama_proyek", "main_lama_proyek"))
@@ -82,6 +93,10 @@ st.header("1️⃣ Penghematan Pemerintah (Subsidi BBM)")
 # --- Sub-Poin Solar ---
 with st.container(border=True):
     st.subheader("a. Substitusi Impor Solar & Dinamika FAME")
+    
+    # 3. NOTIFIKASI PARAMETER AKTIF (SOLAR)
+    st.info(f"⚙️ **Parameter Aktif untuk Simulasi Ini:**\n- Target FAME: **{target_fame}%** | Subsidi Solar: **Rp {sub_solar:,}/L** | Gap Harga FAME: **Rp {gap_fame:,}/L**")
+    
     st.markdown("Berdasarkan regresi logaritmik, **konsumsi solar 2026 diprediksi sebesar 39,84 Juta kL**.")
     
     df_solar_hist = pd.DataFrame({
@@ -103,8 +118,10 @@ with st.container(border=True):
     vol_impor = max(0, vol_fosil_dibutuhkan - produksi_fosil_lokal)
     
     impor_dihemat_solar = max(0, impor_baseline - vol_impor)
-    hemat_kotor_solar = (impor_dihemat_solar * 5150) / 1000 
-    beban_fame = (impor_dihemat_solar * 3000) / 1000 
+    
+    # MENGGUNAKAN VARIABEL DINAMIS UNTUK KALKULASI SOLAR
+    hemat_kotor_solar = (impor_dihemat_solar * sub_solar) / 1000 
+    beban_fame = (impor_dihemat_solar * gap_fame) / 1000 
     hemat_bersih_solar = hemat_kotor_solar - beban_fame
     
     html_cards_1a = f"""<div style="background-color:#f8fafc;padding:25px;border-radius:12px;margin-bottom:20px;border:1px solid #e2e8f0;display:flex;gap:20px;flex-wrap:wrap;"><div style="flex:1;min-width:280px;background:white;padding:20px;border-radius:10px;border-top:4px solid #f59e0b;box-shadow:0 2px 4px rgba(0,0,0,0.05);"><h4 style="color:#b45309;margin-top:0;font-size:17px;">🛢️ Neraca Pasokan Solar 2026</h4><p style="margin:8px 0;color:#334155;font-size:15px;">Proyeksi Konsumsi: <b>{konsumsi_2026:.2f} Jt KL</b></p><p style="margin:8px 0;color:#334155;font-size:15px;">Kebutuhan FAME ({target_fame}%): <b>{vol_fame:.2f} Jt KL</b></p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:15px 0;"><p style="margin:8px 0;color:#16a34a;font-size:16px;">✅ Fosil Tersedia: <b>{produksi_fosil_lokal:.2f} Jt KL</b></p><p style="margin:8px 0;color:#dc2626;font-size:16px;">⚠️ Sisa Impor Solar: <b>{vol_impor:.2f} Jt KL</b></p></div><div style="flex:1;min-width:280px;background:white;padding:20px;border-radius:10px;border-top:4px solid #3b82f6;box-shadow:0 2px 4px rgba(0,0,0,0.05);"><h4 style="color:#1d4ed8;margin-top:0;font-size:17px;">💰 Dampak Keuangan Negara</h4><p style="margin:8px 0;color:#334155;font-size:15px;">Hemat Subsidi Impor: <span style="color:#16a34a;">Rp {hemat_kotor_solar:.2f} T</span></p><p style="margin:8px 0;color:#334155;font-size:15px;">Biaya Selisih FAME: <span style="color:#dc2626;">- Rp {beban_fame:.2f} T</span></p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:15px 0;"><p style="margin:20px 0 8px 0;color:#334155;font-size:17px;">🛡️ Penghematan Bersih: <span style="color:#16a34a;"><b>Rp {hemat_bersih_solar:.2f} T</b></span></p></div></div>"""
@@ -116,13 +133,16 @@ with st.container(border=True):
         * **Kebutuhan Solar Fosil:** Proyeksi Konsumsi (39,84 Jt kL) dikurangi porsi campuran Biosolar (FAME). Pada komposisi {target_fame}%, dibutuhkan Fosil sebanyak {vol_fosil_dibutuhkan:.2f} Jt kL.
         * **Sisa Impor:** Kebutuhan Fosil dikurangi kapasitas kilang lokal (20,10 Jt kL). Defisitnya adalah {vol_impor:.2f} Jt kL.
         * **Volume Impor Dicegah:** Target impor lama (4,90 Jt kL) dikurangi Sisa Impor yang baru = **{impor_dihemat_solar:.2f} Jt kL**.
-        * **Hemat Subsidi:** {impor_dihemat_solar:.2f} Jt kL × Rp 5.150/liter = **Rp {hemat_kotor_solar:.2f} Triliun**.
-        * **Biaya Kompensasi FAME (BPDPKS):** {impor_dihemat_solar:.2f} Jt kL × Selisih Harga Rp 3.000/liter = **Rp {beban_fame:.2f} Triliun**.
+        * **Hemat Subsidi:** {impor_dihemat_solar:.2f} Jt kL × Rp {sub_solar:,}/liter = **Rp {hemat_kotor_solar:.2f} Triliun**.
+        * **Biaya Kompensasi FAME (BPDPKS):** {impor_dihemat_solar:.2f} Jt kL × Selisih Harga Rp {gap_fame:,}/liter = **Rp {beban_fame:.2f} Triliun**.
         * **Kesimpulan Penghematan Bersih:** Rp {hemat_kotor_solar:.2f} T − Rp {beban_fame:.2f} T = **Rp {hemat_bersih_solar:.2f} Triliun**.
         """)
 
 # --- Sub-Poin Bensin ---
 st.subheader("b. Substitusi Impor Bensin (Pertalite)")
+
+# 3. NOTIFIKASI PARAMETER AKTIF (BENSIN)
+st.info(f"⚙️ **Parameter Aktif untuk Simulasi Ini:**\n- Target EV Motor: **{target_ev_motor}%** | Target EV Mobil: **{target_ev_mobil}%** | Subsidi Pertalite: **Rp {sub_pertalite:,}/L**")
 
 col_b1, col_b2 = st.columns([1, 1])
 with col_b1:
@@ -147,7 +167,8 @@ with col_b2:
     st.markdown(html_card_neraca, unsafe_allow_html=True)
 
 # Lanjut ke hitungan Ekonomi & Lahan di bawah kolom
-hemat_kas_negara = (vol_hemat_bensin * 1700) / 1000
+# MENGGUNAKAN VARIABEL DINAMIS UNTUK KALKULASI BENSIN
+hemat_kas_negara = (vol_hemat_bensin * sub_pertalite) / 1000
 biaya_bensin_awal = vol_hemat_bensin * 10 
 biaya_listrik = biaya_bensin_awal / 5
 hemat_rakyat = biaya_bensin_awal - biaya_listrik 
@@ -207,6 +228,10 @@ st.divider()
 # 2. PENGHEMATAN DEVISA & KETAHANAN EKONOMI
 # ==========================================
 st.header("2️⃣ Penghematan Devisa & Ketahanan Ekonomi")
+
+# 3. NOTIFIKASI PARAMETER AKTIF (DEVISA)
+st.info(f"⚙️ **Parameter Aktif untuk Simulasi Ini:**\n- Harga Minyak Dunia: **${harga_minyak}/bbl** | Kurs Rupiah: **Rp {kurs_rp:,}/USD**")
+
 with st.container(border=True):
     st.markdown("Menghentikan impor BBM menyelamatkan devisa negara dalam jumlah masif. Devisa ini menjadi bantalan tangguh untuk menekan defisit APBN 2026 dan memperkuat PDB Nasional.")
     
@@ -231,7 +256,7 @@ with st.container(border=True):
         **Alur Simulasi Angka:**
         * **Konversi ke Satuan Barel:** Di pasar global, minyak dihitung dalam Barel. Konstanta konversinya adalah 1 kL setara 6,2898 Barel.
             * **Total Barel Dicegah:** (Impor Solar {impor_dihemat_solar:.2f} Jt kL + Impor Bensin {vol_hemat_bensin:.2f} Jt kL) × 6,2898 = **{tot_barel:.2f} Juta Barel**.
-        * **Perhitungan Devisa Negara:** {tot_barel:.2f} Juta Barel × Harga Minyak (USD {harga_minyak}/barel) × Kurs (Rp {kurs_rp}/USD) = **Rp {hemat_rp_devisa:.2f} Triliun**.
+        * **Perhitungan Devisa Negara:** {tot_barel:.2f} Juta Barel × Harga Minyak (USD {harga_minyak}/barel) × Kurs (Rp {kurs_rp:,}/USD) = **Rp {hemat_rp_devisa:.2f} Triliun**.
         * **Rasio terhadap Defisit:** Rp {hemat_rp_devisa:.2f} T ÷ Target Defisit APBN (Rp 689,1 T) = **{persen_defisit_tot:.2f}%**.
         * **Rasio terhadap PDB Nominal:** Rp {hemat_rp_devisa:.2f} T ÷ PDB 2025 (Rp 23.821,1 T) = **{persen_pdb_tot:.2f}%**.
         """)
@@ -315,9 +340,17 @@ with col_i2:
         st.subheader("Kebutuhan Bengkel & SDM")
         lama_proyek = st.slider("Lama Pengerjaan Proyek (Tahun)", 1, 10, key="main_lama_proyek", on_change=sync_var, args=("main_lama_proyek", "sb_lama_proyek"))
         
-        # Kapasitas 1 Line = 730 hingga 3650 motor per tahun
-        line_bengkel_min = (vol_konversi * 1_000_000) / (3650 * lama_proyek)
-        line_bengkel_max = (vol_konversi * 1_000_000) / (730 * lama_proyek)
+        # 4. DURASI KONVERSI MENJADI VARIABEL DINAMIS
+        durasi_konv = st.slider("Durasi Konversi Motor (Menit)", 10, 120, key="main_durasi_konv", on_change=sync_var, args=("main_durasi_konv", "sb_durasi_konv"))
+        durasi_min, durasi_max = durasi_konv
+        
+        # Asumsi 1 Line bengkel buka 300 hari setahun, 8 jam sehari = 144.000 menit kerja per tahun
+        menit_kerja_tahunan = 300 * 8 * 60
+        kapasitas_max_per_line = menit_kerja_tahunan / durasi_min # Kapasitas jika pengerjaan sangat cepat (durasi minimal)
+        kapasitas_min_per_line = menit_kerja_tahunan / durasi_max # Kapasitas jika pengerjaan lambat (durasi maksimal)
+        
+        line_bengkel_min = (vol_konversi * 1_000_000) / (kapasitas_max_per_line * lama_proyek)
+        line_bengkel_max = (vol_konversi * 1_000_000) / (kapasitas_min_per_line * lama_proyek)
         
         porsi_tipe_a = st.slider("Porsi Bengkel Tipe A (%)", 0, 100, key="main_porsi_tipe_a", on_change=sync_var, args=("main_porsi_tipe_a", "sb_porsi_tipe_a"))
         porsi_tipe_b = 100 - porsi_tipe_a
@@ -448,7 +481,7 @@ with st.expander("💡 Dari Mana Angka Infrastruktur, Subsidi, dan Rantai Pasok 
     **Alur Simulasi Angka:**
     * **Jalur Transisi Motor:** Total target motor listrik ({total_motor_ev:.2f} Juta unit) dipecah menjadi Konversi ({porsi_konversi}%) sebesar **{vol_konversi:.2f} Juta unit** dan Beli Baru ({porsi_baru}%) sebesar **{vol_baru:.2f} Juta unit**.
     * **Biaya Subsidi Pemerintah:** Subsidi Konversi (Rp {biaya_subsidi_konv:.2f} T) + Subsidi Beli Baru (Rp {biaya_subsidi_baru:.2f} T) = **Rp {total_biaya_subsidi:.2f} Triliun**.
-    * **Kebutuhan Bengkel & SDM:** Satu *line* menyelesaikan 730–3.650 motor/tahun. Setiap *line* butuh 2 teknisi terampil. *Line* ini didistribusikan ke Bengkel Tipe A (2 *line*) dan Tipe B (1 *line*).
+    * **Kebutuhan Bengkel & SDM:** Dengan durasi konversi {durasi_min}-{durasi_max} menit per motor (berasumsi standar jam kerja mekanik adalah 8 jam/hari selama 300 hari setahun), satu *line* dapat menyelesaikan {kapasitas_min_per_line:,.0f}–{kapasitas_max_per_line:,.0f} motor per tahun. Setiap *line* butuh 2 teknisi terampil.
     * **Mesin Charging Mobil (SPKLU):** Total mobil listrik dibagi kepadatan ideal ({rasio_spklu}:1) = **{kebutuhan_spklu:,.0f} Unit SPKLU**.
     * **Total Kebutuhan Baterai & Rantai Pasok:** Dihitung dari 2 komponen utama:
         1. **Baterai Bawaan (1 Unit/Motor):** Sebesar **{total_motor_ev:.2f} Juta unit**.
